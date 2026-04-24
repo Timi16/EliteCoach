@@ -1,0 +1,186 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * EliteCoach design system — IBM Carbon-inspired
+ * Square corners, tight borders, editorial spacing, navy + IBM blue + coral.
+ */
+
+@theme inline {
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-coral: var(--coral);
+  --color-coral-foreground: var(--coral-foreground);
+  --color-navy: var(--navy);
+  --color-navy-foreground: var(--navy-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface: var(--surface);
+  --color-surface-card: var(--surface-card);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+}
+
+:root {
+  --radius: 4px;
+
+  /* IBM Carbon palette translated to oklch */
+  --background: oklch(0.961 0 0);                 /* #F4F4F4 surface */
+  --foreground: oklch(0.165 0 0);                 /* #161616 */
+  --surface: oklch(0.961 0 0);
+  --surface-card: oklch(1 0 0);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.165 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.165 0 0);
+
+  --primary: oklch(0.534 0.219 264.05);           /* #0F62FE IBM Blue */
+  --primary-foreground: oklch(1 0 0);
+  --primary-hover: oklch(0.475 0.226 264.5);      /* #0353E9 */
+
+  --secondary: oklch(0.961 0 0);
+  --secondary-foreground: oklch(0.165 0 0);
+
+  --muted: oklch(0.961 0 0);
+  --muted-foreground: oklch(0.493 0 0);           /* #6F6F6F */
+
+  --accent: oklch(0.96 0.018 250);
+  --accent-foreground: oklch(0.534 0.219 264.05);
+
+  --coral: oklch(0.71 0.176 41);                  /* #FF6B35 */
+  --coral-foreground: oklch(1 0 0);
+
+  --navy: oklch(0.21 0.105 269);                  /* #001141 */
+  --navy-foreground: oklch(1 0 0);
+
+  --destructive: oklch(0.55 0.222 27);            /* #DA1E28 */
+  --destructive-foreground: oklch(1 0 0);
+  --success: oklch(0.585 0.156 144);              /* #24A148 */
+  --warning: oklch(0.83 0.155 90);                /* #F1C21B */
+
+  --border: oklch(0.886 0 0);                     /* #E0E0E0 */
+  --input: oklch(0.886 0 0);
+  --ring: oklch(0.534 0.219 264.05);
+
+  --text-primary: oklch(0.165 0 0);
+  --text-secondary: oklch(0.493 0 0);
+
+  --sidebar: oklch(0.21 0.105 269);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(0.534 0.219 264.05);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.27 0.09 268);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.27 0.09 268);
+  --sidebar-ring: oklch(0.534 0.219 264.05);
+
+  --chart-1: oklch(0.534 0.219 264.05);
+  --chart-2: oklch(0.71 0.176 41);
+  --chart-3: oklch(0.585 0.156 144);
+  --chart-4: oklch(0.83 0.155 90);
+  --chart-5: oklch(0.21 0.105 269);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer utilities {
+  .label-caps {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .container-1200 {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .section-y {
+    padding-top: 80px;
+    padding-bottom: 80px;
+  }
+
+  .card-base {
+    background-color: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    transition: box-shadow 0.18s ease, transform 0.18s ease;
+  }
+
+  .card-base.card-interactive:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .toast-elite {
+    background-color: var(--navy);
+    color: var(--navy-foreground);
+    border-left: 3px solid var(--coral);
+    border-radius: 4px;
+    padding: 16px 20px;
+    width: 320px;
+  }
+}
