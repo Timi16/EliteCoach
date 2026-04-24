@@ -10,6 +10,16 @@ import {
 import { type AuthUser, useAuthStore } from "@/lib/stores";
 import { toast } from "sonner";
 
+function pickString(...values: unknown[]): string | null {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
@@ -41,18 +51,36 @@ function LoginPage() {
         password,
       });
       const data = unwrapApiData<Record<string, unknown>>(res.data);
-      const accessToken =
-        typeof data.accessToken === "string"
-          ? data.accessToken
-          : typeof data.token === "string"
-            ? data.token
+      const nestedTokens =
+        data.tokens && typeof data.tokens === "object"
+          ? (data.tokens as Record<string, unknown>)
+          : data.auth && typeof data.auth === "object"
+            ? (data.auth as Record<string, unknown>)
             : null;
+      const accessToken =
+        pickString(
+          data.accessToken,
+          data.access_token,
+          data.token,
+          data.jwt,
+          nestedTokens?.accessToken,
+          nestedTokens?.access_token,
+          nestedTokens?.token,
+          nestedTokens?.jwt,
+        ) ?? null;
       const refreshToken =
-        typeof data.refreshToken === "string" ? data.refreshToken : "";
+        pickString(
+          data.refreshToken,
+          data.refresh_token,
+          nestedTokens?.refreshToken,
+          nestedTokens?.refresh_token,
+        ) ?? "";
       const rawUser =
         data?.user && typeof data.user === "object"
           ? (data.user as Record<string, unknown>)
-          : ({ email } as Record<string, unknown>);
+          : data?.profile && typeof data.profile === "object"
+            ? (data.profile as Record<string, unknown>)
+            : ({ email } as Record<string, unknown>);
       const user: AuthUser = {
         ...rawUser,
         email:
@@ -60,12 +88,16 @@ function LoginPage() {
             ? rawUser.email
             : email,
         firstName:
-          typeof rawUser.firstName === "string" ? rawUser.firstName : undefined,
-        lastName:
-          typeof rawUser.lastName === "string" ? rawUser.lastName : undefined,
-        id: typeof rawUser.id === "string" ? rawUser.id : undefined,
-        userId: typeof rawUser.userId === "string" ? rawUser.userId : undefined,
-        userType: normalizeUserType(rawUser.userType),
+          pickString(rawUser.firstName, rawUser.first_name) ?? undefined,
+        lastName: pickString(rawUser.lastName, rawUser.last_name) ?? undefined,
+        id: pickString(rawUser.id) ?? undefined,
+        userId: pickString(rawUser.userId, rawUser.user_id) ?? undefined,
+        userType: normalizeUserType(
+          rawUser.userType ??
+            rawUser.user_type ??
+            data.userType ??
+            data.user_type,
+        ),
       };
       if (!accessToken) throw new Error("No access token returned");
       setSession({ user, accessToken, refreshToken });
@@ -75,8 +107,15 @@ function LoginPage() {
       if (user.userType === "TUTOR") navigate({ to: "/tutor/courses" });
       else navigate({ to: "/dashboard" });
     } catch (err) {
-      toast.error(extractErrorMessage(err, "Login failed"));
-      setErrors({ password: "Invalid email or password" });
+      const message = extractErrorMessage(err, "Login failed");
+      toast.error(message);
+      setErrors({
+        password: /invalid|unauthorized|credential|password|email/i.test(
+          message,
+        )
+          ? message
+          : "Login failed. Check the API response shape or your credentials.",
+      });
     } finally {
       setLoading(false);
     }

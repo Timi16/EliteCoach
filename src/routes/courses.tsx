@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { CourseCard, CourseCardData } from "@/components/CourseCard";
 import { contentApi, normalizeCourses } from "@/lib/api-client";
 import { EmptyState } from "@/components/EmptyState";
+import { useAuthStore } from "@/lib/stores";
 import { Filter } from "lucide-react";
 
 export const Route = createFileRoute("/courses")({
@@ -38,6 +39,7 @@ const DOMAINS = [
 const DIFFICULTIES = ["BEGINNER", "INTERMEDIATE", "ADVANCED"];
 
 function CatalogPage() {
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const [courses, setCourses] = useState<CourseCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [domains, setDomains] = useState<string[]>([]);
@@ -46,6 +48,12 @@ function CatalogPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      setCourses([]);
+      setLoading(false);
+      return;
+    }
+
     let alive = true;
     setLoading(true);
     const params = new URLSearchParams();
@@ -63,7 +71,7 @@ function CatalogPage() {
     return () => {
       alive = false;
     };
-  }, [domains, difficulty]);
+  }, [difficulty, domains, isLoggedIn]);
 
   const sorted = useMemo(() => {
     const list = [...courses];
@@ -189,8 +197,14 @@ function CatalogPage() {
               </div>
             ) : sorted.length === 0 ? (
               <EmptyState
-                title="No courses found"
-                description="Try adjusting your filters or check back soon for new courses."
+                title={
+                  isLoggedIn ? "No courses found" : "Log in to browse courses"
+                }
+                description={
+                  isLoggedIn
+                    ? "Try adjusting your filters or check back soon for new courses."
+                    : "The content service requires an authenticated session before it returns catalog data."
+                }
               />
             ) : (
               <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">

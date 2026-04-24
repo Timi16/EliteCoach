@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { CourseCard, CourseCardData } from "@/components/CourseCard";
 import { contentApi, normalizeCourses } from "@/lib/api-client";
 import { EmptyState } from "@/components/EmptyState";
+import { useAuthStore } from "@/lib/stores";
 import {
   ArrowRight,
   Sparkles,
@@ -124,12 +125,20 @@ const FAQ = [
 ];
 
 function LandingPage() {
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const [courses, setCourses] = useState<CourseCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      setCourses([]);
+      setLoading(false);
+      return;
+    }
+
     let alive = true;
+    setLoading(true);
     contentApi
       .get("/courses/")
       .then((res) => {
@@ -143,7 +152,7 @@ function LandingPage() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [isLoggedIn]);
 
   return (
     <div className="min-h-screen flex flex-col bg-surface-card">
@@ -344,8 +353,26 @@ function LandingPage() {
             </div>
           ) : courses.length === 0 ? (
             <EmptyState
-              title="Catalog loading soon"
-              description="We're connecting to the course service. Check back in a moment."
+              title={
+                isLoggedIn
+                  ? "Catalog loading soon"
+                  : "Log in to view the catalog"
+              }
+              description={
+                isLoggedIn
+                  ? "We're connecting to the course service. Check back in a moment."
+                  : "The course service is protected right now, so browse the landing page and sign in to load live course data."
+              }
+              action={
+                !isLoggedIn ? (
+                  <Link
+                    to="/login"
+                    className="h-11 px-4 inline-flex items-center bg-primary text-white font-medium hover:bg-primary-hover transition-colors"
+                  >
+                    Log in
+                  </Link>
+                ) : undefined
+              }
             />
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
