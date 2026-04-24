@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosError } from "axios";
 import { API_URLS } from "./api-config";
 
 const STORAGE_KEY = "elitecoach.auth";
+const AUTH_STORE_KEY = "elitecoach.authstore";
 
 export interface StoredAuth {
   accessToken: string | null;
@@ -40,6 +41,7 @@ export function writeAuth(auth: StoredAuth) {
 export function clearAuth() {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(AUTH_STORE_KEY);
 }
 
 export function unwrapApiData<T>(payload: unknown): T {
@@ -183,6 +185,68 @@ export function normalizeCourses(payload: unknown): NormalizedCourse[] {
     .filter((course): course is NormalizedCourse => course !== null);
 }
 
+export function findNestedString(
+  payload: unknown,
+  keys: string[],
+  visited = new WeakSet<object>(),
+): string | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  if (visited.has(payload)) {
+    return null;
+  }
+  visited.add(payload);
+
+  const record = payload as Record<string, unknown>;
+
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  for (const value of Object.values(record)) {
+    const nested = findNestedString(value, keys, visited);
+    if (nested) return nested;
+  }
+
+  return null;
+}
+
+export function findNestedObject(
+  payload: unknown,
+  keys: string[],
+  visited = new WeakSet<object>(),
+): Record<string, unknown> | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  if (visited.has(payload)) {
+    return null;
+  }
+  visited.add(payload);
+
+  const record = payload as Record<string, unknown>;
+
+  for (const key of keys) {
+    const value = record[key];
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      return value as Record<string, unknown>;
+    }
+  }
+
+  for (const value of Object.values(record)) {
+    const nested = findNestedObject(value, keys, visited);
+    if (nested) return nested;
+  }
+
+  return null;
+}
+
 function makeClient(baseURL: string): AxiosInstance {
   const client = axios.create({ baseURL, timeout: 30000 });
 
@@ -213,7 +277,10 @@ function makeClient(baseURL: string): AxiosInstance {
           if (!refreshing) {
             refreshing = (async () => {
               const { refreshToken } = readAuth();
-              if (!refreshToken) return null;
+              if (!refreshToken) {
+                clearAuth();
+                return null;
+              }
               const res = await axios.post(
                 `${API_URLS.identity}/api/v1/auth/refresh`,
                 {
@@ -238,6 +305,13 @@ function makeClient(baseURL: string): AxiosInstance {
           if (token && original.headers) {
             original.headers.Authorization = `Bearer ${token}`;
             return client.request(original);
+          }
+          clearAuth();
+          if (
+            typeof window !== "undefined" &&
+            window.location.pathname !== "/login"
+          ) {
+            window.location.href = "/login";
           }
         } catch {
           refreshing = null;

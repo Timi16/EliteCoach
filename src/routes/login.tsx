@@ -4,8 +4,9 @@ import { AuthLayout } from "@/components/AuthLayout";
 import {
   identityApi,
   extractErrorMessage,
+  findNestedObject,
+  findNestedString,
   normalizeUserType,
-  unwrapApiData,
 } from "@/lib/api-client";
 import { type AuthUser, useAuthStore } from "@/lib/stores";
 import { toast } from "sonner";
@@ -50,37 +51,47 @@ function LoginPage() {
         email,
         password,
       });
-      const data = unwrapApiData<Record<string, unknown>>(res.data);
-      const nestedTokens =
-        data.tokens && typeof data.tokens === "object"
-          ? (data.tokens as Record<string, unknown>)
-          : data.auth && typeof data.auth === "object"
-            ? (data.auth as Record<string, unknown>)
-            : null;
+      const payload =
+        res.data && typeof res.data === "object"
+          ? (res.data as Record<string, unknown>)
+          : {};
+      const data =
+        payload.data && typeof payload.data === "object"
+          ? (payload.data as Record<string, unknown>)
+          : payload;
       const accessToken =
         pickString(
+          payload.accessToken,
+          payload.access_token,
+          payload.token,
+          payload.jwt,
           data.accessToken,
           data.access_token,
           data.token,
           data.jwt,
-          nestedTokens?.accessToken,
-          nestedTokens?.access_token,
-          nestedTokens?.token,
-          nestedTokens?.jwt,
-        ) ?? null;
+        ) ??
+        findNestedString(payload, [
+          "accessToken",
+          "access_token",
+          "token",
+          "jwt",
+        ]);
       const refreshToken =
         pickString(
+          payload.refreshToken,
+          payload.refresh_token,
           data.refreshToken,
           data.refresh_token,
-          nestedTokens?.refreshToken,
-          nestedTokens?.refresh_token,
-        ) ?? "";
+        ) ??
+        findNestedString(payload, ["refreshToken", "refresh_token"]) ??
+        "";
       const rawUser =
-        data?.user && typeof data.user === "object"
-          ? (data.user as Record<string, unknown>)
-          : data?.profile && typeof data.profile === "object"
-            ? (data.profile as Record<string, unknown>)
-            : ({ email } as Record<string, unknown>);
+        findNestedObject(payload, ["user", "profile", "account"]) ?? data;
+      const fullName =
+        pickString(rawUser.fullname, rawUser.fullName, rawUser.name) ?? "";
+      const [derivedFirstName, ...derivedLastName] = fullName
+        .split(" ")
+        .filter(Boolean);
       const user: AuthUser = {
         ...rawUser,
         email:
@@ -88,15 +99,34 @@ function LoginPage() {
             ? rawUser.email
             : email,
         firstName:
-          pickString(rawUser.firstName, rawUser.first_name) ?? undefined,
-        lastName: pickString(rawUser.lastName, rawUser.last_name) ?? undefined,
-        id: pickString(rawUser.id) ?? undefined,
-        userId: pickString(rawUser.userId, rawUser.user_id) ?? undefined,
+          pickString(rawUser.firstName, rawUser.first_name) ??
+          findNestedString(rawUser, ["firstName", "first_name"]) ??
+          derivedFirstName ??
+          undefined,
+        lastName:
+          pickString(rawUser.lastName, rawUser.last_name) ??
+          findNestedString(rawUser, ["lastName", "last_name"]) ??
+          (derivedLastName.length > 0
+            ? derivedLastName.join(" ")
+            : undefined) ??
+          undefined,
+        id:
+          pickString(rawUser.id, rawUser.userId, rawUser.user_id) ??
+          findNestedString(rawUser, ["id", "userId", "user_id"]) ??
+          undefined,
+        userId:
+          pickString(rawUser.userId, rawUser.user_id) ??
+          findNestedString(rawUser, ["userId", "user_id"]) ??
+          undefined,
         userType: normalizeUserType(
           rawUser.userType ??
             rawUser.user_type ??
+            rawUser.persona ??
             data.userType ??
-            data.user_type,
+            data.user_type ??
+            data.persona ??
+            findNestedString(rawUser, ["userType", "user_type"]) ??
+            findNestedString(payload, ["userType", "user_type", "persona"]),
         ),
       };
       if (!accessToken) throw new Error("No access token returned");
