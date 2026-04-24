@@ -3,10 +3,13 @@ import { useRef, useState, DragEvent } from "react";
 import { TopNav } from "@/components/TopNav";
 import { OrgTabs } from "@/components/OrgTabs";
 import {
+  buildNotificationPayload,
   identityApi,
+  toIsoDateTime,
   extractErrorMessage,
   notificationsApi,
 } from "@/lib/api-client";
+import { useAuthStore } from "@/lib/stores";
 import { toast } from "sonner";
 import { Upload, Plus, X } from "lucide-react";
 
@@ -17,6 +20,7 @@ export const Route = createFileRoute("/org/$orgId/learners")({
 
 function ManageLearnersPage() {
   const { orgId } = Route.useParams();
+  const user = useAuthStore((s) => s.user);
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -37,7 +41,7 @@ function ManageLearnersPage() {
     setImporting(true);
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("csvFile", file);
       const res = await identityApi.post(
         `/api/v1/organizations/${orgId}/import-learners`,
         fd,
@@ -50,11 +54,14 @@ function ManageLearnersPage() {
         errors: data?.errors ?? [],
       });
       notificationsApi
-        .post("/api/v1/notification/send", {
-          channel: "IN_APP",
-          subject: "Import complete",
-          body: `${data?.imported ?? 0} learners imported`,
-        })
+        .post(
+          "/api/v1/notification/send",
+          buildNotificationPayload({
+            to: user?.email,
+            subject: "Import complete",
+            body: `${data?.imported ?? 0} learners imported`,
+          }),
+        )
         .catch(() => {});
       toast.success("Import complete");
     } catch (err) {
@@ -75,12 +82,12 @@ function ManageLearnersPage() {
     setAssigning(true);
     try {
       await identityApi.post(`/api/v1/organizations/${orgId}/assign-course`, {
-        course_id: assignForm.course_id,
-        learners: assignForm.learners
+        courseId: assignForm.course_id,
+        learnersOrTeamIds: assignForm.learners
           .split(",")
           .map((l) => l.trim())
           .filter(Boolean),
-        deadline: assignForm.deadline,
+        deadline: toIsoDateTime(assignForm.deadline),
       });
       toast.success("Course assigned");
       setAssignOpen(false);
@@ -114,7 +121,7 @@ function ManageLearnersPage() {
           </button>
         </div>
 
-        <div className="card-base mb-6">
+        <div className="card-base card-interactive reveal-card mb-6">
           <h3 className="font-semibold mb-2">Bulk import learners</h3>
           <p className="text-sm text-text-secondary mb-6">
             Upload a CSV with columns: email, firstName, lastName.
@@ -153,7 +160,10 @@ function ManageLearnersPage() {
         </div>
 
         {result && (
-          <div className="card-base">
+          <div
+            className="card-base card-interactive reveal-card"
+            style={{ animationDelay: "80ms" }}
+          >
             <h3 className="font-semibold mb-3">Import result</h3>
             <div className="flex gap-4 mb-4">
               <span className="px-3 py-1.5 bg-success/10 text-success label-caps rounded-sm">

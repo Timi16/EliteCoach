@@ -8,6 +8,18 @@ export interface StoredAuth {
   refreshToken: string | null;
 }
 
+export interface NormalizedCourse {
+  id: string;
+  title: string;
+  description?: string;
+  domain?: string;
+  difficulty_level?: string;
+  tutor_name?: string;
+  skills?: string[];
+  published_date?: string;
+  created_at?: string;
+}
+
 export function readAuth(): StoredAuth {
   if (typeof window === "undefined")
     return { accessToken: null, refreshToken: null };
@@ -28,6 +40,147 @@ export function writeAuth(auth: StoredAuth) {
 export function clearAuth() {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
+}
+
+export function unwrapApiData<T>(payload: unknown): T {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "data" in payload &&
+    (payload as { data?: unknown }).data !== undefined
+  ) {
+    return (payload as { data: T }).data;
+  }
+
+  return payload as T;
+}
+
+export function unwrapApiList<T>(payload: unknown): T[] {
+  const data = unwrapApiData<unknown>(payload);
+
+  if (Array.isArray(data)) {
+    return data as T[];
+  }
+
+  if (
+    data &&
+    typeof data === "object" &&
+    "items" in data &&
+    Array.isArray((data as { items?: unknown[] }).items)
+  ) {
+    return (data as { items: T[] }).items;
+  }
+
+  if (
+    data &&
+    typeof data === "object" &&
+    "results" in data &&
+    Array.isArray((data as { results?: unknown[] }).results)
+  ) {
+    return (data as { results: T[] }).results;
+  }
+
+  return [];
+}
+
+export function coerceIntegerId(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && /^\d+$/.test(value.trim())) {
+    return Number(value);
+  }
+
+  return null;
+}
+
+export function toIsoDateTime(value: string): string | undefined {
+  if (!value) return undefined;
+  const parsed = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return undefined;
+  return parsed.toISOString();
+}
+
+export function buildNotificationPayload({
+  to,
+  subject,
+  body,
+  channel = "IN_APP",
+}: {
+  to?: string | null;
+  subject: string;
+  body: string;
+  channel?: string;
+}) {
+  return {
+    channel,
+    body,
+    to: to && to.trim() ? to : "current-user",
+    subject,
+  };
+}
+
+export function normalizeUserType(value: unknown): string | undefined {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  return value.trim().toUpperCase();
+}
+
+export function normalizeCourse(raw: unknown): NormalizedCourse | null {
+  if (!raw || typeof raw !== "object") return null;
+
+  const value = raw as Record<string, unknown>;
+  const id = value.id ?? value.courseId ?? value.course_id;
+  const title = typeof value.title === "string" ? value.title : "";
+
+  if (!id || !title) return null;
+
+  const skillTags = Array.isArray(value.skill_tags)
+    ? value.skill_tags.filter(
+        (item): item is string => typeof item === "string",
+      )
+    : Array.isArray(value.skills)
+      ? value.skills.filter((item): item is string => typeof item === "string")
+      : undefined;
+
+  return {
+    id: String(id),
+    title,
+    description:
+      typeof value.description === "string" ? value.description : undefined,
+    domain: typeof value.domain === "string" ? value.domain : undefined,
+    difficulty_level:
+      typeof value.difficulty_level === "string"
+        ? value.difficulty_level
+        : typeof value.difficultyLevel === "string"
+          ? value.difficultyLevel
+          : undefined,
+    tutor_name:
+      typeof value.tutor_name === "string"
+        ? value.tutor_name
+        : typeof value.tutorName === "string"
+          ? value.tutorName
+          : typeof value.tutor_id === "string"
+            ? value.tutor_id
+            : typeof value.tutorId === "string"
+              ? value.tutorId
+              : undefined,
+    skills: skillTags,
+    published_date:
+      typeof value.published_date === "string"
+        ? value.published_date
+        : typeof value.published_at === "string"
+          ? value.published_at
+          : undefined,
+    created_at:
+      typeof value.created_at === "string" ? value.created_at : undefined,
+  };
+}
+
+export function normalizeCourses(payload: unknown): NormalizedCourse[] {
+  return unwrapApiList<unknown>(payload)
+    .map((course) => normalizeCourse(course))
+    .filter((course): course is NormalizedCourse => course !== null);
 }
 
 function makeClient(baseURL: string): AxiosInstance {
@@ -117,6 +270,18 @@ export function extractErrorMessage(
       if (typeof data.message === "string") return data.message;
       if (typeof data.error === "string") return data.error;
       if (typeof data.detail === "string") return data.detail;
+      if (Array.isArray(data.detail)) {
+        const firstDetail = data.detail.find(
+          (item) =>
+            item &&
+            typeof item === "object" &&
+            typeof (item as { msg?: unknown }).msg === "string",
+        ) as { msg?: string } | undefined;
+
+        if (firstDetail?.msg) {
+          return firstDetail.msg;
+        }
+      }
     }
     return err.message || fallback;
   }

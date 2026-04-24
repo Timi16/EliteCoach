@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { TopNav } from "@/components/TopNav";
 import { Footer } from "@/components/Footer";
 import { CourseCard, CourseCardData } from "@/components/CourseCard";
-import { contentApi } from "@/lib/api-client";
+import { contentApi, normalizeCourses } from "@/lib/api-client";
 import { EmptyState } from "@/components/EmptyState";
 import {
   ArrowRight,
@@ -134,10 +134,9 @@ function LandingPage() {
       .get("/courses/")
       .then((res) => {
         if (!alive) return;
-        const data: CourseCardData[] = Array.isArray(res.data)
-          ? res.data
-          : (res.data?.items ?? []);
-        setCourses(data.slice(0, 6));
+        setCourses(
+          (normalizeCourses(res.data) as CourseCardData[]).slice(0, 6),
+        );
       })
       .catch(() => setCourses([]))
       .finally(() => alive && setLoading(false));
@@ -206,7 +205,7 @@ function LandingPage() {
           <div className="relative hidden lg:block">
             <div className="absolute -top-10 -right-10 w-72 h-72 rounded-full bg-coral/20 blur-3xl" />
             <div className="absolute bottom-0 left-10 w-72 h-72 rounded-full bg-primary/30 blur-3xl" />
-            <div className="relative bg-white text-text-primary rounded-lg p-6 shadow-2xl rotate-2 max-w-sm ml-auto">
+            <div className="hero-float hero-float-a relative bg-white text-text-primary rounded-lg p-6 shadow-2xl rotate-2 max-w-sm ml-auto">
               <div className="h-2 w-full bg-coral mb-4 rounded-sm" />
               <span className="label-caps text-text-secondary">Featured</span>
               <h3 className="text-lg font-semibold mt-2 mb-3">
@@ -227,7 +226,7 @@ function LandingPage() {
                 8 of 12 lessons completed
               </div>
             </div>
-            <div className="relative mt-6 bg-white text-text-primary rounded-lg p-6 shadow-2xl -rotate-2 max-w-xs">
+            <div className="hero-float hero-float-b relative mt-6 bg-white text-text-primary rounded-lg p-6 shadow-2xl -rotate-2 max-w-xs">
               <div className="flex items-center gap-3 mb-3">
                 <img src={logoUrl} alt="" className="w-8 h-8 object-contain" />
                 <div className="text-sm font-semibold">EliteCoach AI</div>

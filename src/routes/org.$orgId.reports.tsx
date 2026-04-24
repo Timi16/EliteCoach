@@ -23,9 +23,17 @@ function OrgReportsPage() {
   const fetchReport = async () => {
     setLoading(true);
     try {
+      const params = new URLSearchParams();
+      if (tab === "progress") {
+        if (start)
+          params.set("startDate", new Date(`${start}T00:00:00`).toISOString());
+        if (end)
+          params.set("endDate", new Date(`${end}T23:59:59`).toISOString());
+        params.set("format", "JSON");
+      }
       const url =
         tab === "progress"
-          ? `/api/v1/organizations/${orgId}/reports/learner-progress?startDate=${start}&endDate=${end}&format=JSON`
+          ? `/api/v1/organizations/${orgId}/reports/learner-progress?${params.toString()}`
           : `/api/v1/organizations/${orgId}/reports/compliance`;
       const res = await identityApi.get(url);
       setData(res.data?.data ?? res.data);
@@ -39,10 +47,18 @@ function OrgReportsPage() {
 
   const exportReport = async () => {
     try {
+      const params = new URLSearchParams();
+      if (tab === "progress") {
+        if (start)
+          params.set("startDate", new Date(`${start}T00:00:00`).toISOString());
+        if (end)
+          params.set("endDate", new Date(`${end}T23:59:59`).toISOString());
+        params.set("format", exportFormat);
+      }
       const url =
         tab === "progress"
-          ? `/api/v1/organizations/${orgId}/reports/learner-progress?startDate=${start}&endDate=${end}&format=${exportFormat}`
-          : `/api/v1/organizations/${orgId}/reports/compliance?format=${exportFormat}`;
+          ? `/api/v1/organizations/${orgId}/reports/learner-progress?${params.toString()}`
+          : `/api/v1/organizations/${orgId}/reports/compliance`;
       await identityApi.get(url);
       toast.success(`${exportFormat} report exported`);
     } catch (err) {
@@ -83,7 +99,7 @@ function OrgReportsPage() {
           ))}
         </div>
 
-        <div className="card-base mb-6">
+        <div className="card-base card-interactive reveal-card mb-6">
           <div className="grid md:grid-cols-4 gap-4 items-end">
             {tab === "progress" && (
               <>
@@ -145,8 +161,12 @@ function OrgReportsPage() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cards.map(([k, v]) => (
-              <div key={k} className="card-base">
+            {cards.map(([k, v], index) => (
+              <div
+                key={k}
+                className="card-base card-interactive reveal-card"
+                style={{ animationDelay: `${index * 60}ms` }}
+              >
                 <div className="label-caps text-text-secondary mb-2">
                   {k.replace(/_/g, " ")}
                 </div>

@@ -3,7 +3,13 @@ import { useEffect, useState } from "react";
 import { TopNav } from "@/components/TopNav";
 import { Footer } from "@/components/Footer";
 import { useAuthStore } from "@/lib/stores";
-import { aiTutorApi, contentApi } from "@/lib/api-client";
+import {
+  aiTutorApi,
+  contentApi,
+  normalizeCourses,
+  unwrapApiData,
+  unwrapApiList,
+} from "@/lib/api-client";
 import { CourseCard, CourseCardData } from "@/components/CourseCard";
 import { EmptyState } from "@/components/EmptyState";
 import { ArrowRight, Sparkles } from "lucide-react";
@@ -51,15 +57,9 @@ function DashboardPage() {
         : Promise.resolve({ data: null }),
     ]).then(([s, c, p]) => {
       if (!alive) return;
-      const sList: SessionRow[] = Array.isArray(s.data)
-        ? s.data
-        : (s.data?.items ?? []);
-      const cList: CourseCardData[] = Array.isArray(c.data)
-        ? c.data
-        : (c.data?.items ?? []);
-      setSessions(sList.slice(0, 8));
-      setCourses(cList.slice(0, 6));
-      setPath(p.data ?? null);
+      setSessions(unwrapApiList<SessionRow>(s.data).slice(0, 8));
+      setCourses((normalizeCourses(c.data) as CourseCardData[]).slice(0, 6));
+      setPath(unwrapApiData<typeof path>(p.data));
       setLoading(false);
     });
     return () => {
@@ -134,8 +134,12 @@ function DashboardPage() {
               value: `${avgScore}%`,
               accent: "bg-success",
             },
-          ].map((s) => (
-            <div key={s.label} className="card-base relative overflow-hidden">
+          ].map((s, index) => (
+            <div
+              key={s.label}
+              className="card-base card-interactive reveal-card relative overflow-hidden"
+              style={{ animationDelay: `${index * 60}ms` }}
+            >
               <div className={`absolute top-0 left-0 h-1 w-full ${s.accent}`} />
               <div className="label-caps text-text-secondary mb-3">
                 {s.label}
@@ -177,8 +181,14 @@ function DashboardPage() {
             />
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.slice(0, 3).map((c) => (
-                <CourseCard key={c.id} course={c} />
+              {courses.slice(0, 3).map((c, index) => (
+                <div
+                  key={c.id}
+                  className="reveal-card"
+                  style={{ animationDelay: `${index * 70}ms` }}
+                >
+                  <CourseCard course={c} />
+                </div>
               ))}
             </div>
           )}
@@ -186,7 +196,7 @@ function DashboardPage() {
 
         <div className="grid lg:grid-cols-3 gap-6 mb-12">
           {/* RECENT SESSIONS */}
-          <div className="lg:col-span-2 card-base p-0 overflow-hidden">
+          <div className="lg:col-span-2 card-base card-interactive reveal-card p-0 overflow-hidden">
             <div className="px-6 py-4 border-b border-border">
               <h3 className="font-semibold">Recent sessions</h3>
             </div>
@@ -237,7 +247,7 @@ function DashboardPage() {
           </div>
 
           {/* LEARNING PATH WIDGET */}
-          <div className="card-base bg-navy text-white border-navy">
+          <div className="card-base card-interactive reveal-card bg-navy text-white border-navy">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles size={16} className="text-coral" />
               <span className="label-caps text-coral">Learning Path</span>

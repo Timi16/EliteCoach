@@ -10,7 +10,7 @@ export const Route = createFileRoute("/verify-otp")({
       { title: "Verify your email — EliteCoach" },
       {
         name: "description",
-        content: "Enter the 6-digit code sent to your email.",
+        content: "Enter the 4-digit code sent to your email.",
       },
     ],
   }),
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/verify-otp")({
 function VerifyOtpPage() {
   const { email } = Route.useSearch();
   const navigate = useNavigate();
-  const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
+  const [digits, setDigits] = useState<string[]>(Array(4).fill(""));
   const [loading, setLoading] = useState(false);
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -34,7 +34,7 @@ function VerifyOtpPage() {
       next[i] = d;
       return next;
     });
-    if (d && i < 5) refs.current[i + 1]?.focus();
+    if (d && i < digits.length - 1) refs.current[i + 1]?.focus();
   };
 
   const handleKey = (e: KeyboardEvent<HTMLInputElement>, i: number) => {
@@ -43,17 +43,24 @@ function VerifyOtpPage() {
   };
 
   const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
-    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const text = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, digits.length);
     if (!text) return;
     e.preventDefault();
-    const arr = text.split("").concat(Array(6).fill("")).slice(0, 6);
+    const arr = text
+      .split("")
+      .concat(Array(digits.length).fill(""))
+      .slice(0, digits.length);
     setDigits(arr);
-    refs.current[Math.min(text.length, 5)]?.focus();
+    refs.current[Math.min(text.length, digits.length - 1)]?.focus();
   };
 
   const submit = async () => {
     const otp = digits.join("");
-    if (otp.length !== 6) return toast.error("Enter all 6 digits");
+    if (otp.length !== digits.length)
+      return toast.error(`Enter all ${digits.length} digits`);
     setLoading(true);
     try {
       await identityApi.post("/api/v1/auth/verify/otp-email", { email, otp });
@@ -69,7 +76,7 @@ function VerifyOtpPage() {
   return (
     <AuthLayout
       title="Verify your email"
-      subtitle={`Enter the 6-digit code sent to ${email || "your inbox"}.`}
+      subtitle={`Enter the 4-digit code sent to ${email || "your inbox"}.`}
     >
       <div className="space-y-6">
         <div className="flex gap-3 justify-between">

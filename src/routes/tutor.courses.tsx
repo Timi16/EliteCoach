@@ -2,7 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { TopNav } from "@/components/TopNav";
 import { Footer } from "@/components/Footer";
-import { contentApi, extractErrorMessage } from "@/lib/api-client";
+import {
+  contentApi,
+  extractErrorMessage,
+  normalizeCourses,
+} from "@/lib/api-client";
+import { useAuthStore } from "@/lib/stores";
 import { toast } from "sonner";
 import { Plus, X, Edit, Loader2, Sparkles } from "lucide-react";
 
@@ -21,6 +26,7 @@ export const Route = createFileRoute("/tutor/courses")({
 });
 
 function TutorCoursesPage() {
+  const user = useAuthStore((s) => s.user);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -48,10 +54,7 @@ function TutorCoursesPage() {
     contentApi
       .get("/courses/")
       .then((res) => {
-        const data: Course[] = Array.isArray(res.data)
-          ? res.data
-          : (res.data?.items ?? []);
-        setCourses(data);
+        setCourses(normalizeCourses(res.data) as Course[]);
       })
       .catch(() => setCourses([]))
       .finally(() => setLoading(false));
@@ -62,7 +65,11 @@ function TutorCoursesPage() {
   const submitCreate = async () => {
     setCreating(true);
     try {
-      await contentApi.post("/courses/", createForm);
+      await contentApi.post("/courses/", {
+        ...createForm,
+        skill_tags: [],
+        tutor_id: user?.id ?? user?.userId ?? user?.email ?? "tutor",
+      });
       toast.success("Course created");
       setCreateOpen(false);
       setCreateForm({

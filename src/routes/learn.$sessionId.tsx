@@ -2,11 +2,14 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   aiTutorApi,
+  buildNotificationPayload,
+  coerceIntegerId,
   contentApi,
   notificationsApi,
   extractErrorMessage,
+  unwrapApiData,
 } from "@/lib/api-client";
-import { useSessionStore } from "@/lib/stores";
+import { useAuthStore, useSessionStore } from "@/lib/stores";
 import { toast } from "sonner";
 import {
   Send,
@@ -40,9 +43,11 @@ function LearningRoomPage() {
   const { sessionId } = Route.useParams();
   const navigate = useNavigate();
   const courseId = useSessionStore((s) => s.courseId);
+  const storedSubjectId = useSessionStore((s) => s.subjectId);
   const messages = useSessionStore((s) => s.messages);
   const addMessage = useSessionStore((s) => s.addMessage);
   const clearSession = useSessionStore((s) => s.clearSession);
+  const user = useAuthStore((s) => s.user);
 
   const [modules, setModules] = useState<Module[]>([]);
   const [activeModule, setActiveModule] = useState(0);
@@ -59,9 +64,10 @@ function LearningRoomPage() {
     contentApi
       .get(`/courses/${courseId}/curriculum`)
       .then((res) => {
-        const mods = Array.isArray(res.data)
-          ? res.data
-          : (res.data?.modules ?? res.data?.items ?? []);
+        const payload = unwrapApiData<unknown>(res.data);
+        const mods = Array.isArray(payload)
+          ? payload
+          : ((payload as { modules?: Module[] } | null)?.modules ?? []);
         setModules(mods);
       })
       .catch(() => {});
@@ -115,6 +121,19 @@ function LearningRoomPage() {
   const sendMessage = async () => {
     const text = input.trim();
     if (!text) return;
+    const subjectId =
+      coerceIntegerId(currentLesson?.id) ??
+      coerceIntegerId(currentModule?.id) ??
+      storedSubjectId ??
+      coerceIntegerId(courseId);
+
+    if (subjectId == null) {
+      toast.error(
+        "This lesson is missing the numeric subject ID required by the tutor API.",
+      );
+      return;
+    }
+
     setInput("");
     addMessage({
       id: crypto.randomUUID(),
@@ -128,16 +147,22 @@ function LearningRoomPage() {
         `/api/v1/learning/sessions/${sessionId}/message`,
         {
           message: text,
-          content: text,
+          subject_id: subjectId,
+          context: currentLesson?.title ?? currentModule?.title ?? "General",
         },
       );
+      const payload = unwrapApiData<unknown>(res.data);
       const reply =
-        res.data?.response ??
-        res.data?.message ??
-        res.data?.reply ??
-        res.data?.data?.response ??
-        res.data?.data?.message ??
-        "I'm here to help — could you give me a bit more detail?";
+        typeof payload === "string"
+          ? payload
+          : ((
+              payload as { response?: string; message?: string; reply?: string }
+            )?.response ??
+            (payload as { response?: string; message?: string; reply?: string })
+              ?.message ??
+            (payload as { response?: string; message?: string; reply?: string })
+              ?.reply ??
+            "I'm here to help — could you give me a bit more detail?");
       addMessage({
         id: crypto.randomUUID(),
         role: "assistant",
@@ -163,20 +188,31 @@ function LearningRoomPage() {
       const res = await aiTutorApi.post(
         `/api/v1/learning/sessions/${sessionId}/end`,
         {},
+        {
+          params: {
+            feedback: `Completed ${progress}% of the learning room`,
+            difficulty: progress >= 80 ? 2 : progress >= 40 ? 3 : 4,
+          },
+        },
       );
+      const payload = unwrapApiData<unknown>(res.data);
       const summary =
-        res.data?.summary ??
-        res.data?.data?.summary ??
-        "Session ended. Great work today — your progress has been saved.";
+        typeof payload === "string"
+          ? payload
+          : ((payload as { summary?: string })?.summary ??
+            "Session ended. Great work today — your progress has been saved.");
       setShowSummary(
         typeof summary === "string" ? summary : JSON.stringify(summary),
       );
       notificationsApi
-        .post("/api/v1/notification/send", {
-          channel: "IN_APP",
-          subject: "Session ended",
-          body: "Great session! Here's your summary.",
-        })
+        .post(
+          "/api/v1/notification/send",
+          buildNotificationPayload({
+            to: user?.email,
+            subject: "Session ended",
+            body: "Great session! Here's your summary.",
+          }),
+        )
         .catch(() => {});
     } catch (err) {
       toast.error(extractErrorMessage(err, "Could not end session"));

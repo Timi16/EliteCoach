@@ -6,7 +6,12 @@ import {
   contentApi,
   aiTutorApi,
   notificationsApi,
+  buildNotificationPayload,
+  coerceIntegerId,
   extractErrorMessage,
+  normalizeCourse,
+  normalizeCourses,
+  unwrapApiData,
 } from "@/lib/api-client";
 import { useAuthStore, useSessionStore } from "@/lib/stores";
 import { toast } from "sonner";
@@ -65,18 +70,25 @@ function CourseDetailPage() {
   useEffect(() => {
     let alive = true;
     Promise.all([
-      contentApi.get(`/courses/${courseId}`).catch(() => ({ data: null })),
+      contentApi.get("/courses/").catch(() => ({ data: [] })),
       contentApi
         .get(`/courses/${courseId}/curriculum`)
         .catch(() => ({ data: null })),
-    ]).then(([c, cur]) => {
+    ]).then(([listRes, cur]) => {
       if (!alive) return;
-      setCourse(c.data ?? null);
-      const mods = Array.isArray(cur.data)
-        ? cur.data
-        : (cur.data?.modules ?? cur.data?.items ?? []);
+      const curriculum = unwrapApiData<unknown>(cur.data);
+      const matchedCourse = normalizeCourses(listRes.data).find(
+        (entry) => entry.id === courseId,
+      );
+      const derivedCourse =
+        matchedCourse ??
+        (!Array.isArray(curriculum) ? normalizeCourse(curriculum) : null);
+      setCourse(derivedCourse);
+      const mods = Array.isArray(curriculum)
+        ? curriculum
+        : ((curriculum as { modules?: Module[] } | null)?.modules ?? []);
       setModules(mods);
-      if (mods[0]) setOpenModule(mods[0].id);
+      if (mods[0]) setOpenModule(String(mods[0].id));
       setLoading(false);
     });
     return () => {
@@ -92,28 +104,57 @@ function CourseDetailPage() {
     }
     setStarting(true);
     try {
-      const res = await aiTutorApi.post("/api/v1/learning/sessions/start", {
-        course_id: courseId,
-        user_id: user?.id ?? user?.userId,
-      });
+      const numericCourseId = coerceIntegerId(courseId);
+      const subjectId = coerceIntegerId(modules[0]?.id) ?? numericCourseId;
+
+      if (numericCourseId == null || subjectId == null) {
+        throw new Error(
+          "This course is missing the numeric IDs required to start a tutor session.",
+        );
+      }
+
+      const res = await aiTutorApi.post(
+        "/api/v1/learning/sessions/start",
+        {},
+        {
+          params: {
+            course_id: numericCourseId,
+            subject_id: subjectId,
+            topic: course?.title ?? "General",
+          },
+        },
+      );
+      const payload = unwrapApiData<unknown>(res.data);
       const sessionId =
-        res.data?.session_id ??
-        res.data?.id ??
-        res.data?.data?.session_id ??
-        res.data?.data?.id;
+        typeof payload === "string"
+          ? payload
+          : ((payload as { session_id?: string | number; id?: string | number })
+              ?.session_id ??
+            (payload as { session_id?: string | number; id?: string | number })
+              ?.id);
       if (!sessionId) throw new Error("No session id returned");
-      setSession({ sessionId, courseId });
+      setSession({
+        sessionId: String(sessionId),
+        courseId,
+        subjectId,
+      });
 
       // Fire enrollment notification (non-blocking)
       notificationsApi
-        .post("/api/v1/notification/send", {
-          channel: "IN_APP",
-          subject: "Enrolled!",
-          body: `You've joined ${course?.title ?? "the course"}`,
-        })
+        .post(
+          "/api/v1/notification/send",
+          buildNotificationPayload({
+            to: user?.email,
+            subject: "Enrolled!",
+            body: `You've joined ${course?.title ?? "the course"}`,
+          }),
+        )
         .catch(() => {});
 
-      navigate({ to: "/learn/$sessionId", params: { sessionId } });
+      navigate({
+        to: "/learn/$sessionId",
+        params: { sessionId: String(sessionId) },
+      });
     } catch (err) {
       toast.error(extractErrorMessage(err, "Could not start learning session"));
     } finally {
@@ -195,7 +236,7 @@ function CourseDetailPage() {
           </div>
 
           {/* Floating enroll card */}
-          <div className="lg:sticky lg:top-24 self-start bg-surface-card text-text-primary rounded-lg p-6 border border-border">
+          <div className="lg:sticky lg:top-24 self-start bg-surface-card text-text-primary rounded-lg p-6 border border-border card-interactive reveal-card">
             <div className="h-2 w-full bg-coral mb-4 rounded-sm -mt-6 -mx-6 rounded-t-lg" />
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-sm text-text-secondary">
@@ -257,14 +298,16 @@ function CourseDetailPage() {
                 </div>
               ) : (
                 modules.map((m, idx) => {
-                  const open = openModule === m.id;
+                  const open = openModule === String(m.id);
                   return (
                     <div
                       key={m.id}
                       className="border-b border-border last:border-b-0"
                     >
                       <button
-                        onClick={() => setOpenModule(open ? null : m.id)}
+                        onClick={() =>
+                          setOpenModule(open ? null : String(m.id))
+                        }
                         className="w-full flex items-center justify-between p-5 hover:bg-surface text-left"
                       >
                         <div className="flex items-center gap-4">
@@ -309,14 +352,17 @@ function CourseDetailPage() {
           </div>
 
           <aside className="space-y-6">
-            <div className="card-base">
+            <div className="card-base card-interactive reveal-card">
               <h3 className="font-semibold mb-2">AI-powered tutor</h3>
               <p className="text-sm text-text-secondary leading-relaxed">
                 Every lesson comes with an always-on tutor that adapts to your
                 questions and pace.
               </p>
             </div>
-            <div className="card-base">
+            <div
+              className="card-base card-interactive reveal-card"
+              style={{ animationDelay: "80ms" }}
+            >
               <h3 className="font-semibold mb-2">Hands-on assessments</h3>
               <p className="text-sm text-text-secondary leading-relaxed">
                 Test what you've learned with adaptive quizzes after each

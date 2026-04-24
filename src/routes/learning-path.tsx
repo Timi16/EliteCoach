@@ -3,7 +3,12 @@ import { useEffect, useState } from "react";
 import { TopNav } from "@/components/TopNav";
 import { Footer } from "@/components/Footer";
 import { useAuthStore } from "@/lib/stores";
-import { aiTutorApi, extractErrorMessage } from "@/lib/api-client";
+import {
+  aiTutorApi,
+  extractErrorMessage,
+  normalizeUserType,
+  unwrapApiData,
+} from "@/lib/api-client";
 import { toast } from "sonner";
 import { Pencil, X, Check, Circle } from "lucide-react";
 
@@ -44,7 +49,7 @@ function LearningPathPage() {
     aiTutorApi
       .get(`/api/v1/learning/paths/${userId}`)
       .then((res) => {
-        const data: LearningPath = res.data?.data ?? res.data;
+        const data = unwrapApiData<LearningPath | null>(res.data);
         setPath(data ?? null);
         if (data?.goal) setGoal(data.goal);
         if (data?.time_per_week) setHours(data.time_per_week);
@@ -57,12 +62,18 @@ function LearningPathPage() {
     if (!userId) return;
     setGenerating(true);
     try {
-      const res = await aiTutorApi.post("/api/v1/learning/paths/generate", {
-        user_id: userId,
-        goal: goal || "Career growth",
-        time_per_week: hours,
-      });
-      setPath(res.data?.data ?? res.data);
+      const res = await aiTutorApi.post(
+        "/api/v1/learning/paths/generate",
+        {},
+        {
+          params: {
+            target_role:
+              goal || normalizeUserType(user?.userType) || "Career growth",
+            time_per_week: hours,
+          },
+        },
+      );
+      setPath(unwrapApiData<LearningPath | null>(res.data));
       toast.success("New learning path generated");
     } catch (err) {
       toast.error(extractErrorMessage(err, "Could not generate path"));
@@ -74,10 +85,16 @@ function LearningPathPage() {
   const saveGoal = async () => {
     if (!userId) return;
     try {
-      await aiTutorApi.put(`/api/v1/learning/paths/${userId}`, {
-        new_goal: goal,
-        time_per_week: hours,
-      });
+      await aiTutorApi.put(
+        `/api/v1/learning/paths/${userId}`,
+        {},
+        {
+          params: {
+            new_goal: goal,
+            time_per_week: hours,
+          },
+        },
+      );
       setPath((p) => ({ ...(p ?? {}), goal, time_per_week: hours }));
       setEditing(false);
       toast.success("Goal updated");

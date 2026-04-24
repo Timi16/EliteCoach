@@ -35,7 +35,10 @@ function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await identityApi.post("/api/v1/auth/register", { ...form, userType });
+      await identityApi.post("/api/v1/auth/register", {
+        ...form,
+        userType: userType.toLowerCase(),
+      });
       toast.success(
         "Account created. Check your email for a verification code.",
       );

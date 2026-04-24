@@ -83,8 +83,13 @@ export interface ChatMessage {
 interface SessionState {
   currentSessionId: string | null;
   courseId: string | null;
+  subjectId: number | null;
   messages: ChatMessage[];
-  setSession: (data: { sessionId: string; courseId: string }) => void;
+  setSession: (data: {
+    sessionId: string;
+    courseId: string;
+    subjectId: number | null;
+  }) => void;
   addMessage: (m: ChatMessage) => void;
   clearSession: () => void;
 }
@@ -92,10 +97,16 @@ interface SessionState {
 export const useSessionStore = create<SessionState>((set) => ({
   currentSessionId: null,
   courseId: null,
+  subjectId: null,
   messages: [],
-  setSession: ({ sessionId, courseId }) =>
-    set({ currentSessionId: sessionId, courseId, messages: [] }),
+  setSession: ({ sessionId, courseId, subjectId }) =>
+    set({ currentSessionId: sessionId, courseId, subjectId, messages: [] }),
   addMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
   clearSession: () =>
-    set({ currentSessionId: null, courseId: null, messages: [] }),
+    set({
+      currentSessionId: null,
+      courseId: null,
+      subjectId: null,
+      messages: [],
+    }),
 }));

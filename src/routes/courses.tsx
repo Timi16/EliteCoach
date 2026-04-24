@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { TopNav } from "@/components/TopNav";
 import { Footer } from "@/components/Footer";
 import { CourseCard, CourseCardData } from "@/components/CourseCard";
-import { contentApi } from "@/lib/api-client";
+import { contentApi, normalizeCourses } from "@/lib/api-client";
 import { EmptyState } from "@/components/EmptyState";
 import { Filter } from "lucide-react";
 
@@ -56,10 +56,7 @@ function CatalogPage() {
       .get(`/courses/?${params.toString()}`)
       .then((res) => {
         if (!alive) return;
-        const data: CourseCardData[] = Array.isArray(res.data)
-          ? res.data
-          : (res.data?.items ?? []);
-        setCourses(data);
+        setCourses(normalizeCourses(res.data) as CourseCardData[]);
       })
       .catch(() => setCourses([]))
       .finally(() => alive && setLoading(false));
@@ -197,8 +194,14 @@ function CatalogPage() {
               />
             ) : (
               <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {sorted.map((c) => (
-                  <CourseCard key={c.id} course={c} />
+                {sorted.map((c, index) => (
+                  <div
+                    key={c.id}
+                    className="reveal-card"
+                    style={{ animationDelay: `${index * 60}ms` }}
+                  >
+                    <CourseCard course={c} />
+                  </div>
                 ))}
               </div>
             )}

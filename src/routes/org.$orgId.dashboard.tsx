@@ -5,11 +5,11 @@ import { OrgTabs } from "@/components/OrgTabs";
 import { identityApi } from "@/lib/api-client";
 
 interface OrgDashboard {
-  active_learners?: number;
-  completion_rate?: number;
-  avg_score?: number;
-  at_risk?: number;
-  course_progress?: {
+  activeLearners?: number;
+  completionRate?: number;
+  averageScore?: number;
+  atRiskLearners?: number;
+  courseProgress?: {
     courseId: string;
     enrolledCount: number;
     completionRate: number;
@@ -37,22 +37,22 @@ function OrgDashboardPage() {
   const stats = [
     {
       label: "Active learners",
-      value: data?.active_learners ?? "—",
+      value: data?.activeLearners ?? "—",
       accent: "bg-primary",
     },
     {
       label: "Completion rate",
-      value: data?.completion_rate != null ? `${data.completion_rate}%` : "—",
+      value: data?.completionRate != null ? `${data.completionRate}%` : "—",
       accent: "bg-coral",
     },
     {
       label: "Avg score",
-      value: data?.avg_score != null ? `${data.avg_score}%` : "—",
+      value: data?.averageScore != null ? `${data.averageScore}%` : "—",
       accent: "bg-success",
     },
     {
       label: "At-risk learners",
-      value: data?.at_risk ?? "—",
+      value: data?.atRiskLearners ?? "—",
       accent: "bg-destructive",
     },
   ];
@@ -78,7 +78,11 @@ function OrgDashboardPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             {stats.map((s) => (
-              <div key={s.label} className="card-base relative overflow-hidden">
+              <div
+                key={s.label}
+                className="card-base card-interactive reveal-card relative overflow-hidden"
+                style={{ animationDelay: `${stats.indexOf(s) * 60}ms` }}
+              >
                 <div
                   className={`absolute top-0 left-0 h-1 w-full ${s.accent}`}
                 />
@@ -95,7 +99,7 @@ function OrgDashboardPage() {
           <div className="px-6 py-4 border-b border-border">
             <h3 className="font-semibold">Course progress</h3>
           </div>
-          {!data?.course_progress || data.course_progress.length === 0 ? (
+          {!data?.courseProgress || data.courseProgress.length === 0 ? (
             <div className="p-8 text-center text-text-secondary text-sm">
               No course data yet.
             </div>
@@ -115,7 +119,7 @@ function OrgDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.course_progress.map((row) => (
+                {data.courseProgress.map((row) => (
                   <tr key={row.courseId} className="border-t border-border">
                     <td className="px-6 py-4 font-mono text-xs">
                       {row.courseId}

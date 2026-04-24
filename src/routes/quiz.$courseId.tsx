@@ -2,10 +2,16 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   assessmentsApi,
+  buildNotificationPayload,
+  coerceIntegerId,
+  contentApi,
   notificationsApi,
   extractErrorMessage,
+  normalizeCourses,
+  unwrapApiData,
 } from "@/lib/api-client";
 import { TopNav } from "@/components/TopNav";
+import { useAuthStore } from "@/lib/stores";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
@@ -16,6 +22,62 @@ interface Question {
   correct_answer?: string;
 }
 
+function parseQuestions(payload: unknown): Question[] {
+  const data = unwrapApiData<unknown>(payload);
+  const parsed =
+    typeof data === "string"
+      ? (() => {
+          try {
+            return JSON.parse(data) as unknown;
+          } catch {
+            return null;
+          }
+        })()
+      : data;
+
+  const candidates = Array.isArray(parsed)
+    ? parsed
+    : ((parsed as { questions?: unknown[]; items?: unknown[] } | null)
+        ?.questions ??
+      (parsed as { questions?: unknown[]; items?: unknown[] } | null)?.items ??
+      []);
+
+  return candidates
+    .map<Question | null>((item, index) => {
+      if (!item || typeof item !== "object") return null;
+      const value = item as Record<string, unknown>;
+      const prompt =
+        typeof value.question === "string"
+          ? value.question
+          : typeof value.prompt === "string"
+            ? value.prompt
+            : "";
+      const options = Array.isArray(value.options)
+        ? value.options.filter(
+            (option): option is string => typeof option === "string",
+          )
+        : [];
+
+      if (!prompt) return null;
+
+      return {
+        id:
+          value.id != null
+            ? String(value.id)
+            : value.question_id != null
+              ? String(value.question_id)
+              : `generated-${index + 1}`,
+        question: prompt,
+        options,
+        correct_answer:
+          typeof value.correct_answer === "string"
+            ? value.correct_answer
+            : undefined,
+      };
+    })
+    .filter((question): question is Question => question !== null);
+}
+
 export const Route = createFileRoute("/quiz/$courseId")({
   head: () => ({ meta: [{ title: "Quiz — EliteCoach" }] }),
   component: QuizPage,
@@ -24,6 +86,7 @@ export const Route = createFileRoute("/quiz/$courseId")({
 function QuizPage() {
   const { courseId } = Route.useParams();
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [idx, setIdx] = useState(0);
@@ -38,19 +101,57 @@ function QuizPage() {
 
   useEffect(() => {
     let alive = true;
-    assessmentsApi
-      .get(`/api/v1/assessments/course/${courseId}`)
-      .then((res) => {
+    const numericCourseId = coerceIntegerId(courseId);
+
+    if (numericCourseId == null) {
+      setQuestions([
+        {
+          id: "demo-1",
+          question: "What's the primary benefit of an AI tutor?",
+          options: [
+            "It replaces all human teachers",
+            "It adapts explanations to your pace",
+            "It only works for math",
+            "It removes the need to study",
+          ],
+          correct_answer: "It adapts explanations to your pace",
+        },
+      ]);
+      setLoading(false);
+      return () => {
+        alive = false;
+      };
+    }
+
+    Promise.all([
+      contentApi.get("/courses/").catch(() => ({ data: [] })),
+      assessmentsApi.post(
+        "/api/v1/assessments/generate-quiz",
+        {},
+        {
+          params: {
+            course_id: numericCourseId,
+            topic: "Course assessment",
+            num_questions: 5,
+            level: "beginner",
+          },
+        },
+      ),
+    ])
+      .then(([coursesRes, quizRes]) => {
         if (!alive) return;
-        const data: Question[] = Array.isArray(res.data)
-          ? res.data
-          : (res.data?.questions ?? res.data?.items ?? []);
+        const matchedCourse = normalizeCourses(coursesRes.data).find(
+          (course) => course.id === courseId,
+        );
+        const data = parseQuestions(quizRes.data);
         if (data.length === 0) {
           // Fallback demo question so UI is interactive even without API content
           setQuestions([
             {
               id: "demo-1",
-              question: "What's the primary benefit of an AI tutor?",
+              question:
+                matchedCourse?.title ??
+                "What's the primary benefit of an AI tutor?",
               options: [
                 "It replaces all human teachers",
                 "It adapts explanations to your pace",
@@ -60,9 +161,9 @@ function QuizPage() {
               correct_answer: "It adapts explanations to your pace",
             },
           ]);
-        } else {
-          setQuestions(data);
+          return;
         }
+        setQuestions(data);
       })
       .catch(() => {
         setQuestions([
@@ -94,31 +195,93 @@ function QuizPage() {
   const submit = async () => {
     setSubmitting(true);
     try {
+      const numericCourseId = coerceIntegerId(courseId);
+      if (numericCourseId == null) {
+        throw new Error("This quiz requires a numeric course ID.");
+      }
+
       const res = await assessmentsApi.post("/api/v1/assessments/submit", {
-        course_id: courseId,
-        answers: Object.entries(answers).map(([question_id, answer]) => ({
-          question_id,
-          answer,
+        course_id: numericCourseId,
+        questions,
+        answers: questions.map((question) => ({
+          question_id: question.id,
+          answer: answers[question.id] ?? "",
         })),
       });
-      const data = res.data?.data ?? res.data;
-      const score = data?.score ?? data?.percentage ?? 0;
-      const total = data?.total ?? questions.length;
-      const passed = data?.passed ?? score >= 70;
-      const per: { id: string; correct: boolean }[] =
-        data?.per_question ??
-        data?.results ??
-        questions.map((q) => ({
-          id: q.id,
-          correct: answers[q.id] === q.correct_answer,
-        }));
+      const payload = unwrapApiData<unknown>(res.data);
+      const assessmentId =
+        typeof payload === "object" && payload
+          ? ((
+              payload as {
+                assessment_id?: number | string;
+                assessmentId?: number | string;
+              }
+            ).assessment_id ??
+            (
+              payload as {
+                assessment_id?: number | string;
+                assessmentId?: number | string;
+              }
+            ).assessmentId)
+          : undefined;
+
+      const resultsRes =
+        assessmentId != null
+          ? await assessmentsApi
+              .get(`/api/v1/assessments/results/${assessmentId}`)
+              .catch(() => null)
+          : null;
+      const data = resultsRes
+        ? unwrapApiData<Record<string, unknown>>(resultsRes.data)
+        : typeof payload === "object" && payload
+          ? (payload as Record<string, unknown>)
+          : {};
+      const score = Number(data.score ?? data.percentage ?? 0);
+      const total = Number(data.total ?? questions.length);
+      const passed = Boolean(data.passed ?? score >= 70);
+      const perSource = Array.isArray(data.per_question)
+        ? data.per_question
+        : Array.isArray(data.results)
+          ? data.results
+          : null;
+      const per: { id: string; correct: boolean }[] = perSource
+        ? perSource
+            .map((entry) => {
+              if (!entry || typeof entry !== "object") return null;
+              const value = entry as Record<string, unknown>;
+              const id =
+                value.id ?? value.question_id ?? value.questionId ?? null;
+              const correct =
+                typeof value.correct === "boolean"
+                  ? value.correct
+                  : typeof value.is_correct === "boolean"
+                    ? value.is_correct
+                    : undefined;
+              if (id == null || correct == null) return null;
+              return { id: String(id), correct };
+            })
+            .filter(
+              (
+                entry,
+              ): entry is {
+                id: string;
+                correct: boolean;
+              } => entry !== null,
+            )
+        : questions.map((q) => ({
+            id: q.id,
+            correct: answers[q.id] === q.correct_answer,
+          }));
       setResult({ score, total, passed, perQuestion: per });
       notificationsApi
-        .post("/api/v1/notification/send", {
-          channel: "IN_APP",
-          subject: "Quiz complete",
-          body: `You scored ${typeof score === "number" ? score : 0}%`,
-        })
+        .post(
+          "/api/v1/notification/send",
+          buildNotificationPayload({
+            to: user?.email,
+            subject: "Quiz complete",
+            body: `You scored ${typeof score === "number" ? score : 0}%`,
+          }),
+        )
         .catch(() => {});
     } catch (err) {
       // local scoring fallback

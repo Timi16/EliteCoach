@@ -6,8 +6,9 @@ import {
   identityApi,
   notificationsApi,
   extractErrorMessage,
+  unwrapApiData,
 } from "@/lib/api-client";
-import { useAuthStore } from "@/lib/stores";
+import { type AuthUser, useAuthStore } from "@/lib/stores";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/profile")({
@@ -21,20 +22,52 @@ function ProfilePage() {
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "" });
   const [prefs, setPrefs] = useState({ email: true, in_app: true });
   const [saving, setSaving] = useState(false);
+  const profileEditingSupported = false;
 
   useEffect(() => {
     identityApi
       .get("/api/v1/users/profile")
       .then((res) => {
-        const data = res.data?.data ?? res.data;
+        const data = unwrapApiData<Record<string, unknown> | null>(res.data);
         if (data) {
           setForm({
-            firstName: data.firstName ?? user?.firstName ?? "",
-            lastName: data.lastName ?? user?.lastName ?? "",
-            email: data.email ?? user?.email ?? "",
+            firstName:
+              typeof data.firstName === "string"
+                ? data.firstName
+                : (user?.firstName ?? ""),
+            lastName:
+              typeof data.lastName === "string"
+                ? data.lastName
+                : (user?.lastName ?? ""),
+            email:
+              typeof data.email === "string" ? data.email : (user?.email ?? ""),
           });
-          if (data.userType || data.id)
-            setUser({ ...(user ?? { email: data.email }), ...data });
+          if (data.userType || data.id) {
+            const nextUser: AuthUser = {
+              ...(user ?? {
+                email:
+                  typeof data.email === "string" ? data.email : "unknown@user",
+              }),
+              email:
+                typeof data.email === "string"
+                  ? data.email
+                  : (user?.email ?? "unknown@user"),
+              firstName:
+                typeof data.firstName === "string"
+                  ? data.firstName
+                  : user?.firstName,
+              lastName:
+                typeof data.lastName === "string"
+                  ? data.lastName
+                  : user?.lastName,
+              userType:
+                typeof data.userType === "string"
+                  ? data.userType
+                  : user?.userType,
+              id: typeof data.id === "string" ? data.id : user?.id,
+            };
+            setUser(nextUser);
+          }
         }
       })
       .catch(() => {
@@ -45,9 +78,13 @@ function ProfilePage() {
             email: user.email,
           });
       });
-  }, []);
+  }, [setUser, user]);
 
   const save = async () => {
+    if (!profileEditingSupported) {
+      toast.error("Profile editing is not available from the backend yet.");
+      return;
+    }
     setSaving(true);
     try {
       await identityApi.put("/api/v1/users/profile", form);
@@ -61,12 +98,13 @@ function ProfilePage() {
   };
 
   const togglePref = async (k: "email" | "in_app", v: boolean) => {
-    setPrefs((p) => ({ ...p, [k]: v }));
+    const nextPrefs = { ...prefs, [k]: v };
+    setPrefs(nextPrefs);
     try {
-      await notificationsApi.post("/api/v1/notification/preferences", {
-        ...prefs,
-        [k]: v,
-      });
+      await notificationsApi.post(
+        "/api/v1/notification/preferences",
+        JSON.stringify(nextPrefs),
+      );
       toast.success("Preferences saved");
     } catch {
       // silent
@@ -110,6 +148,13 @@ function ProfilePage() {
               <p className="text-sm text-text-secondary mb-6">
                 Update your name and contact info.
               </p>
+              {!profileEditingSupported && (
+                <div className="mb-4 rounded-sm border border-border bg-surface px-4 py-3 text-sm text-text-secondary">
+                  Profile editing is not available yet. You can view your
+                  profile data here, but updates are disabled until the backend
+                  exposes a write endpoint.
+                </div>
+              )}
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="label-caps text-text-secondary block mb-2">
@@ -148,10 +193,14 @@ function ProfilePage() {
               </div>
               <button
                 onClick={save}
-                disabled={saving}
+                disabled={saving || !profileEditingSupported}
                 className="mt-6 h-11 px-5 bg-primary text-primary-foreground font-medium hover:bg-primary-hover transition-colors disabled:opacity-60"
               >
-                {saving ? "Saving..." : "Save changes"}
+                {profileEditingSupported
+                  ? saving
+                    ? "Saving..."
+                    : "Save changes"
+                  : "Editing unavailable"}
               </button>
             </div>
 

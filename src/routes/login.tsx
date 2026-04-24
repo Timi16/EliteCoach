@@ -1,8 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, FormEvent } from "react";
 import { AuthLayout } from "@/components/AuthLayout";
-import { identityApi, extractErrorMessage } from "@/lib/api-client";
-import { useAuthStore } from "@/lib/stores";
+import {
+  identityApi,
+  extractErrorMessage,
+  normalizeUserType,
+  unwrapApiData,
+} from "@/lib/api-client";
+import { type AuthUser, useAuthStore } from "@/lib/stores";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
@@ -35,10 +40,33 @@ function LoginPage() {
         email,
         password,
       });
-      const data = res.data?.data ?? res.data;
-      const accessToken = data?.accessToken ?? data?.token;
-      const refreshToken = data?.refreshToken ?? "";
-      const user = data?.user ?? { email };
+      const data = unwrapApiData<Record<string, unknown>>(res.data);
+      const accessToken =
+        typeof data.accessToken === "string"
+          ? data.accessToken
+          : typeof data.token === "string"
+            ? data.token
+            : null;
+      const refreshToken =
+        typeof data.refreshToken === "string" ? data.refreshToken : "";
+      const rawUser =
+        data?.user && typeof data.user === "object"
+          ? (data.user as Record<string, unknown>)
+          : ({ email } as Record<string, unknown>);
+      const user: AuthUser = {
+        ...rawUser,
+        email:
+          typeof rawUser.email === "string" && rawUser.email
+            ? rawUser.email
+            : email,
+        firstName:
+          typeof rawUser.firstName === "string" ? rawUser.firstName : undefined,
+        lastName:
+          typeof rawUser.lastName === "string" ? rawUser.lastName : undefined,
+        id: typeof rawUser.id === "string" ? rawUser.id : undefined,
+        userId: typeof rawUser.userId === "string" ? rawUser.userId : undefined,
+        userType: normalizeUserType(rawUser.userType),
+      };
       if (!accessToken) throw new Error("No access token returned");
       setSession({ user, accessToken, refreshToken });
       toast.success(
