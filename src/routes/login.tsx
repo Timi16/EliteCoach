@@ -1,0 +1,95 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState, FormEvent } from "react";
+import { AuthLayout } from "@/components/AuthLayout";
+import { identityApi, extractErrorMessage } from "@/lib/api-client";
+import { useAuthStore } from "@/lib/stores";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/login")({
+  head: () => ({
+    meta: [
+      { title: "Log in — EliteCoach" },
+      { name: "description", content: "Log in to EliteCoach to continue learning." },
+    ],
+  }),
+  component: LoginPage,
+});
+
+function LoginPage() {
+  const navigate = useNavigate();
+  const setSession = useAuthStore((s) => s.setSession);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+    setLoading(true);
+    try {
+      const res = await identityApi.post("/api/v1/auth/login", { email, password });
+      const data = res.data?.data ?? res.data;
+      const accessToken = data?.accessToken ?? data?.token;
+      const refreshToken = data?.refreshToken ?? "";
+      const user = data?.user ?? { email };
+      if (!accessToken) throw new Error("No access token returned");
+      setSession({ user, accessToken, refreshToken });
+      toast.success(`Welcome back${user.firstName ? ", " + user.firstName : ""}`);
+      if (user.userType === "TUTOR") navigate({ to: "/tutor/courses" });
+      else navigate({ to: "/dashboard" });
+    } catch (err) {
+      toast.error(extractErrorMessage(err, "Login failed"));
+      setErrors({ password: "Invalid email or password" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AuthLayout title="Welcome back" subtitle="Log in to continue your learning journey.">
+      <form onSubmit={submit} className="space-y-5">
+        <div>
+          <label className="label-caps text-text-secondary block mb-2">Email</label>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full h-12 px-4 border border-border focus:border-primary outline-none transition-colors"
+            placeholder="you@example.com"
+          />
+        </div>
+        <div>
+          <label className="label-caps text-text-secondary block mb-2">Password</label>
+          <input
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full h-12 px-4 border border-border focus:border-primary outline-none transition-colors"
+            placeholder="••••••••"
+          />
+          {errors.password && (
+            <p className="text-[13px] text-destructive mt-1">{errors.password}</p>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full h-12 bg-primary text-primary-foreground font-medium hover:bg-primary-hover transition-colors disabled:opacity-60"
+        >
+          {loading ? "Signing in..." : "Log in"}
+        </button>
+
+        <p className="text-sm text-text-secondary text-center">
+          Don't have an account?{" "}
+          <Link to="/register" className="text-primary font-medium hover:underline">
+            Create one
+          </Link>
+        </p>
+      </form>
+    </AuthLayout>
+  );
+}
