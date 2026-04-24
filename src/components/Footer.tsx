@@ -29,25 +29,67 @@ export function Footer() {
           <div>
             <div className="label-caps text-white/60 mb-4">Learn</div>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/courses" className="text-white/80 hover:text-white">Courses</Link></li>
-              <li><Link to="/learning-path" className="text-white/80 hover:text-white">Learning Paths</Link></li>
-              <li><Link to="/dashboard" className="text-white/80 hover:text-white">Dashboard</Link></li>
+              <li>
+                <Link to="/courses" className="text-white/80 hover:text-white">
+                  Courses
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/learning-path"
+                  className="text-white/80 hover:text-white"
+                >
+                  Learning Paths
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/dashboard"
+                  className="text-white/80 hover:text-white"
+                >
+                  Dashboard
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
             <div className="label-caps text-white/60 mb-4">Company</div>
             <ul className="space-y-3 text-sm">
-              <li><a href="#" className="text-white/80 hover:text-white">About</a></li>
-              <li><a href="#" className="text-white/80 hover:text-white">For organisations</a></li>
-              <li><a href="#" className="text-white/80 hover:text-white">Careers</a></li>
+              <li>
+                <a href="#" className="text-white/80 hover:text-white">
+                  About
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-white/80 hover:text-white">
+                  For organisations
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-white/80 hover:text-white">
+                  Careers
+                </a>
+              </li>
             </ul>
           </div>
           <div>
             <div className="label-caps text-white/60 mb-4">Legal</div>
             <ul className="space-y-3 text-sm">
-              <li><a href="#" className="text-white/80 hover:text-white">Privacy</a></li>
-              <li><a href="#" className="text-white/80 hover:text-white">Terms</a></li>
-              <li><a href="#" className="text-white/80 hover:text-white">Contact</a></li>
+              <li>
+                <a href="#" className="text-white/80 hover:text-white">
+                  Privacy
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-white/80 hover:text-white">
+                  Terms
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-white/80 hover:text-white">
+                  Contact
+                </a>
+              </li>
             </ul>
           </div>
         </div>

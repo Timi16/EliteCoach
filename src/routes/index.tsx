@@ -42,12 +42,42 @@ export const Route = createFileRoute("/")({
 });
 
 const DOMAINS = [
-  { icon: BrainCircuit, name: "Artificial Intelligence", count: "42 courses", tone: "bg-primary" },
-  { icon: LineChart, name: "Data Science", count: "38 courses", tone: "bg-coral" },
-  { icon: Code2, name: "Software Engineering", count: "56 courses", tone: "bg-success" },
-  { icon: PenTool, name: "Product Design", count: "24 courses", tone: "bg-navy" },
-  { icon: Briefcase, name: "Business & Strategy", count: "31 courses", tone: "bg-primary" },
-  { icon: Megaphone, name: "Marketing & Growth", count: "19 courses", tone: "bg-coral" },
+  {
+    icon: BrainCircuit,
+    name: "Artificial Intelligence",
+    count: "42 courses",
+    tone: "bg-primary",
+  },
+  {
+    icon: LineChart,
+    name: "Data Science",
+    count: "38 courses",
+    tone: "bg-coral",
+  },
+  {
+    icon: Code2,
+    name: "Software Engineering",
+    count: "56 courses",
+    tone: "bg-success",
+  },
+  {
+    icon: PenTool,
+    name: "Product Design",
+    count: "24 courses",
+    tone: "bg-navy",
+  },
+  {
+    icon: Briefcase,
+    name: "Business & Strategy",
+    count: "31 courses",
+    tone: "bg-primary",
+  },
+  {
+    icon: Megaphone,
+    name: "Marketing & Growth",
+    count: "19 courses",
+    tone: "bg-coral",
+  },
 ];
 
 const TESTIMONIALS = [
@@ -104,7 +134,9 @@ function LandingPage() {
       .get("/courses/")
       .then((res) => {
         if (!alive) return;
-        const data: CourseCardData[] = Array.isArray(res.data) ? res.data : (res.data?.items ?? []);
+        const data: CourseCardData[] = Array.isArray(res.data)
+          ? res.data
+          : (res.data?.items ?? []);
         setCourses(data.slice(0, 6));
       })
       .catch(() => setCourses([]))
@@ -160,7 +192,10 @@ function LandingPage() {
             <div className="mt-12 pt-8 border-t border-white/10 flex flex-wrap items-center gap-6 text-xs text-white/50">
               <span className="label-caps">Trusted by teams at</span>
               {["NORTHWIND", "ACME CORP", "STELLAR.IO", "MERIDIAN"].map((b) => (
-                <span key={b} className="font-mono text-white/70 tracking-widest">
+                <span
+                  key={b}
+                  className="font-mono text-white/70 tracking-widest"
+                >
                   {b}
                 </span>
               ))}
@@ -174,15 +209,23 @@ function LandingPage() {
             <div className="relative bg-white text-text-primary rounded-lg p-6 shadow-2xl rotate-2 max-w-sm ml-auto">
               <div className="h-2 w-full bg-coral mb-4 rounded-sm" />
               <span className="label-caps text-text-secondary">Featured</span>
-              <h3 className="text-lg font-semibold mt-2 mb-3">Intro to Machine Learning</h3>
+              <h3 className="text-lg font-semibold mt-2 mb-3">
+                Intro to Machine Learning
+              </h3>
               <div className="flex items-center gap-2 mb-4">
-                <span className="label-caps bg-surface px-2 py-1">Data Science</span>
-                <span className="label-caps border border-border px-2 py-1">Beginner</span>
+                <span className="label-caps bg-surface px-2 py-1">
+                  Data Science
+                </span>
+                <span className="label-caps border border-border px-2 py-1">
+                  Beginner
+                </span>
               </div>
               <div className="h-1 w-full bg-surface rounded-sm overflow-hidden mb-2">
                 <div className="h-full w-2/3 bg-coral" />
               </div>
-              <div className="text-xs text-text-secondary">8 of 12 lessons completed</div>
+              <div className="text-xs text-text-secondary">
+                8 of 12 lessons completed
+              </div>
             </div>
             <div className="relative mt-6 bg-white text-text-primary rounded-lg p-6 shadow-2xl -rotate-2 max-w-xs">
               <div className="flex items-center gap-3 mb-3">
@@ -194,8 +237,12 @@ function LandingPage() {
                 learns — start with the loss function...
               </p>
               <div className="mt-4 flex gap-2">
-                <span className="label-caps bg-primary/10 text-primary px-2 py-1">Live</span>
-                <span className="label-caps bg-surface px-2 py-1">Module 3 · Lesson 2</span>
+                <span className="label-caps bg-primary/10 text-primary px-2 py-1">
+                  Live
+                </span>
+                <span className="label-caps bg-surface px-2 py-1">
+                  Module 3 · Lesson 2
+                </span>
               </div>
             </div>
           </div>
@@ -225,7 +272,9 @@ function LandingPage() {
       <section className="bg-surface section-y">
         <div className="container-1200">
           <div className="max-w-2xl mb-14">
-            <span className="label-caps text-coral mb-3 inline-block">Domains</span>
+            <span className="label-caps text-coral mb-3 inline-block">
+              Domains
+            </span>
             <h2 className="text-4xl md:text-[44px] font-semibold tracking-tight mb-4">
               Learn what actually moves your career.
             </h2>
@@ -253,7 +302,9 @@ function LandingPage() {
                     <h3 className="text-lg font-semibold mb-1 group-hover:text-primary transition-colors">
                       {d.name}
                     </h3>
-                    <div className="text-sm text-text-secondary font-mono">{d.count}</div>
+                    <div className="text-sm text-text-secondary font-mono">
+                      {d.count}
+                    </div>
                   </div>
                   <ArrowRight
                     size={18}
@@ -271,7 +322,9 @@ function LandingPage() {
         <div className="container-1200">
           <div className="flex items-end justify-between mb-12 gap-6 flex-wrap">
             <div>
-              <span className="label-caps text-coral mb-3 inline-block">Catalog</span>
+              <span className="label-caps text-coral mb-3 inline-block">
+                Catalog
+              </span>
               <h2 className="text-4xl md:text-[44px] font-semibold tracking-tight max-w-xl">
                 Explore top courses
               </h2>
@@ -315,7 +368,9 @@ function LandingPage() {
         />
         <div className="container-1200 grid lg:grid-cols-2 gap-16 items-center relative">
           <div>
-            <span className="label-caps text-coral mb-3 inline-block">EliteCoach AI</span>
+            <span className="label-caps text-coral mb-3 inline-block">
+              EliteCoach AI
+            </span>
             <h2 className="text-4xl md:text-[44px] font-semibold tracking-tight mb-6 leading-tight">
               An AI tutor that knows the lesson, knows you, and never sleeps.
             </h2>
@@ -350,7 +405,9 @@ function LandingPage() {
               <img src={logoUrl} alt="" className="w-8 h-8 object-contain" />
               <div>
                 <div className="text-sm font-semibold">EliteCoach AI</div>
-                <div className="text-xs text-white/50 font-mono">module-3 · lesson-2</div>
+                <div className="text-xs text-white/50 font-mono">
+                  module-3 · lesson-2
+                </div>
               </div>
               <span className="ml-auto label-caps text-coral">Live</span>
             </div>
@@ -385,7 +442,9 @@ function LandingPage() {
       <section className="bg-surface-card section-y">
         <div className="container-1200">
           <div className="text-center mb-16">
-            <span className="label-caps text-coral mb-3 inline-block">How it works</span>
+            <span className="label-caps text-coral mb-3 inline-block">
+              How it works
+            </span>
             <h2 className="text-4xl md:text-[44px] font-semibold tracking-tight max-w-2xl mx-auto">
               Three steps to your next skill
             </h2>
@@ -415,7 +474,9 @@ function LandingPage() {
               return (
                 <div key={s.n} className="relative">
                   <div className="border-l-2 border-primary pl-6">
-                    <div className="font-mono text-sm text-coral mb-3">{s.n}</div>
+                    <div className="font-mono text-sm text-coral mb-3">
+                      {s.n}
+                    </div>
                     <div className="h-12 w-12 bg-primary/10 text-primary flex items-center justify-center mb-4">
                       <Icon size={22} />
                     </div>
@@ -433,7 +494,9 @@ function LandingPage() {
       <section className="bg-surface section-y">
         <div className="container-1200">
           <div className="max-w-2xl mb-14">
-            <span className="label-caps text-coral mb-3 inline-block">Stories</span>
+            <span className="label-caps text-coral mb-3 inline-block">
+              Stories
+            </span>
             <h2 className="text-4xl md:text-[44px] font-semibold tracking-tight">
               Real learners. Real outcomes.
             </h2>
@@ -461,7 +524,9 @@ function LandingPage() {
       <section className="bg-surface-card section-y border-y border-border">
         <div className="container-1200 grid lg:grid-cols-[1fr_1.2fr] gap-16 items-center">
           <div>
-            <span className="label-caps text-coral mb-3 inline-block">For organisations</span>
+            <span className="label-caps text-coral mb-3 inline-block">
+              For organisations
+            </span>
             <h2 className="text-4xl md:text-[44px] font-semibold tracking-tight mb-6 leading-tight">
               Upskill your whole team without the LMS pain.
             </h2>
@@ -488,17 +553,35 @@ function LandingPage() {
 
           <div className="grid sm:grid-cols-2 gap-4">
             {[
-              { icon: Users, t: "Bulk learner import", d: "CSV upload with row-level error reporting." },
-              { icon: Trophy, t: "Compliance reports", d: "Export to PDF or CSV in one click." },
-              { icon: BrainCircuit, t: "Custom learning paths", d: "Tailored to roles in your org." },
-              { icon: Sparkles, t: "Real-time progress", d: "Dashboards that managers actually use." },
+              {
+                icon: Users,
+                t: "Bulk learner import",
+                d: "CSV upload with row-level error reporting.",
+              },
+              {
+                icon: Trophy,
+                t: "Compliance reports",
+                d: "Export to PDF or CSV in one click.",
+              },
+              {
+                icon: BrainCircuit,
+                t: "Custom learning paths",
+                d: "Tailored to roles in your org.",
+              },
+              {
+                icon: Sparkles,
+                t: "Real-time progress",
+                d: "Dashboards that managers actually use.",
+              },
             ].map((f) => {
               const Icon = f.icon;
               return (
                 <div key={f.t} className="card-base">
                   <Icon size={22} className="text-primary mb-3" />
                   <h4 className="font-semibold mb-1">{f.t}</h4>
-                  <p className="text-sm text-text-secondary leading-relaxed">{f.d}</p>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    {f.d}
+                  </p>
                 </div>
               );
             })}
@@ -555,7 +638,11 @@ function LandingPage() {
           className="absolute right-0 bottom-0 w-[400px] opacity-[0.06] pointer-events-none"
         />
         <div className="container-1200 text-center relative">
-          <img src={logoUrl} alt="" className="w-16 h-16 mx-auto mb-6 object-contain" />
+          <img
+            src={logoUrl}
+            alt=""
+            className="w-16 h-16 mx-auto mb-6 object-contain"
+          />
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
             Ready to start learning?
           </h2>

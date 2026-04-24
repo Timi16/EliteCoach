@@ -9,7 +9,8 @@ export interface StoredAuth {
 }
 
 export function readAuth(): StoredAuth {
-  if (typeof window === "undefined") return { accessToken: null, refreshToken: null };
+  if (typeof window === "undefined")
+    return { accessToken: null, refreshToken: null };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { accessToken: null, refreshToken: null };
@@ -45,7 +46,9 @@ function makeClient(baseURL: string): AxiosInstance {
   client.interceptors.response.use(
     (r) => r,
     async (error: AxiosError) => {
-      const original = error.config as (typeof error.config & { _retried?: boolean }) | undefined;
+      const original = error.config as
+        | (typeof error.config & { _retried?: boolean })
+        | undefined;
       if (
         error.response?.status === 401 &&
         original &&
@@ -58,11 +61,18 @@ function makeClient(baseURL: string): AxiosInstance {
             refreshing = (async () => {
               const { refreshToken } = readAuth();
               if (!refreshToken) return null;
-              const res = await axios.post(`${API_URLS.identity}/api/v1/auth/refresh`, {
-                refreshToken,
-              });
-              const newAccess = res.data?.accessToken ?? res.data?.data?.accessToken;
-              const newRefresh = res.data?.refreshToken ?? res.data?.data?.refreshToken ?? refreshToken;
+              const res = await axios.post(
+                `${API_URLS.identity}/api/v1/auth/refresh`,
+                {
+                  refreshToken,
+                },
+              );
+              const newAccess =
+                res.data?.accessToken ?? res.data?.data?.accessToken;
+              const newRefresh =
+                res.data?.refreshToken ??
+                res.data?.data?.refreshToken ??
+                refreshToken;
               if (newAccess) {
                 writeAuth({ accessToken: newAccess, refreshToken: newRefresh });
                 return newAccess;
@@ -97,7 +107,10 @@ export const assessmentsApi = makeClient(API_URLS.assessments);
 export const contentApi = makeClient(API_URLS.content);
 export const notificationsApi = makeClient(API_URLS.notifications);
 
-export function extractErrorMessage(err: unknown, fallback = "Something went wrong"): string {
+export function extractErrorMessage(
+  err: unknown,
+  fallback = "Something went wrong",
+): string {
   if (axios.isAxiosError(err)) {
     const data = err.response?.data as Record<string, unknown> | undefined;
     if (data) {

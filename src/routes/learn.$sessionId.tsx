@@ -1,9 +1,22 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { aiTutorApi, contentApi, notificationsApi, extractErrorMessage } from "@/lib/api-client";
+import {
+  aiTutorApi,
+  contentApi,
+  notificationsApi,
+  extractErrorMessage,
+} from "@/lib/api-client";
 import { useSessionStore } from "@/lib/stores";
 import { toast } from "sonner";
-import { Send, Check, ChevronLeft, ChevronRight, X, MessageSquare, BookOpen } from "lucide-react";
+import {
+  Send,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  MessageSquare,
+  BookOpen,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface ContentChunk {
@@ -46,26 +59,35 @@ function LearningRoomPage() {
     contentApi
       .get(`/courses/${courseId}/curriculum`)
       .then((res) => {
-        const mods = Array.isArray(res.data) ? res.data : (res.data?.modules ?? res.data?.items ?? []);
+        const mods = Array.isArray(res.data)
+          ? res.data
+          : (res.data?.modules ?? res.data?.items ?? []);
         setModules(mods);
       })
       .catch(() => {});
   }, [courseId]);
 
   useEffect(() => {
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    if (chatRef.current)
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [messages]);
 
   const currentModule = modules[activeModule];
   const currentLesson = currentModule?.content_chunks?.[activeLesson];
 
-  const totalLessons = modules.reduce((sum, m) => sum + (m.content_chunks?.length ?? 0), 0);
-  const progress = totalLessons === 0 ? 0 : Math.round((completed.size / totalLessons) * 100);
+  const totalLessons = modules.reduce(
+    (sum, m) => sum + (m.content_chunks?.length ?? 0),
+    0,
+  );
+  const progress =
+    totalLessons === 0 ? 0 : Math.round((completed.size / totalLessons) * 100);
 
   const lessonKey = (mi: number, li: number) => `${mi}-${li}`;
 
   const markComplete = () => {
-    setCompleted((prev) => new Set(prev).add(lessonKey(activeModule, activeLesson)));
+    setCompleted((prev) =>
+      new Set(prev).add(lessonKey(activeModule, activeLesson)),
+    );
     toast.success("Lesson marked complete");
   };
 
@@ -94,13 +116,21 @@ function LearningRoomPage() {
     const text = input.trim();
     if (!text) return;
     setInput("");
-    addMessage({ id: crypto.randomUUID(), role: "user", content: text, ts: Date.now() });
+    addMessage({
+      id: crypto.randomUUID(),
+      role: "user",
+      content: text,
+      ts: Date.now(),
+    });
     setSending(true);
     try {
-      const res = await aiTutorApi.post(`/api/v1/learning/sessions/${sessionId}/message`, {
-        message: text,
-        content: text,
-      });
+      const res = await aiTutorApi.post(
+        `/api/v1/learning/sessions/${sessionId}/message`,
+        {
+          message: text,
+          content: text,
+        },
+      );
       const reply =
         res.data?.response ??
         res.data?.message ??
@@ -130,12 +160,17 @@ function LearningRoomPage() {
 
   const endSession = async () => {
     try {
-      const res = await aiTutorApi.post(`/api/v1/learning/sessions/${sessionId}/end`, {});
+      const res = await aiTutorApi.post(
+        `/api/v1/learning/sessions/${sessionId}/end`,
+        {},
+      );
       const summary =
         res.data?.summary ??
         res.data?.data?.summary ??
         "Session ended. Great work today — your progress has been saved.";
-      setShowSummary(typeof summary === "string" ? summary : JSON.stringify(summary));
+      setShowSummary(
+        typeof summary === "string" ? summary : JSON.stringify(summary),
+      );
       notificationsApi
         .post("/api/v1/notification/send", {
           channel: "IN_APP",
@@ -157,14 +192,24 @@ function LearningRoomPage() {
   const SidebarTree = (
     <div className="h-full flex flex-col">
       <div className="p-6 border-b border-white/10">
-        <Link to="/courses" className="label-caps text-coral hover:underline inline-block mb-3">
+        <Link
+          to="/courses"
+          className="label-caps text-coral hover:underline inline-block mb-3"
+        >
           ← Exit
         </Link>
-        <div className="text-sm font-semibold mb-3 truncate">Course progress</div>
-        <div className="h-1 w-full bg-white/10 rounded-sm overflow-hidden">
-          <div className="h-full bg-coral transition-all" style={{ width: `${progress}%` }} />
+        <div className="text-sm font-semibold mb-3 truncate">
+          Course progress
         </div>
-        <div className="text-xs text-white/60 mt-2 font-mono">{progress}% complete</div>
+        <div className="h-1 w-full bg-white/10 rounded-sm overflow-hidden">
+          <div
+            className="h-full bg-coral transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <div className="text-xs text-white/60 mt-2 font-mono">
+          {progress}% complete
+        </div>
       </div>
       <div className="flex-1 overflow-auto p-3">
         {modules.length === 0 ? (
@@ -187,7 +232,9 @@ function LearningRoomPage() {
                       setMobileTab("lesson");
                     }}
                     className={`w-full text-left px-3 py-2 text-sm flex items-center gap-3 rounded-sm transition-colors ${
-                      isActive ? "bg-primary text-white" : "text-white/80 hover:bg-white/5"
+                      isActive
+                        ? "bg-primary text-white"
+                        : "text-white/80 hover:bg-white/5"
                     }`}
                   >
                     <span
@@ -224,24 +271,31 @@ function LearningRoomPage() {
       <div className="flex-1 overflow-auto px-8 py-10">
         {currentLesson ? (
           <div className="max-w-3xl mx-auto">
-            <span className="label-caps text-coral mb-3 inline-block">Lesson</span>
-            <h1 className="text-3xl font-bold tracking-tight mb-6">{currentLesson.title}</h1>
+            <span className="label-caps text-coral mb-3 inline-block">
+              Lesson
+            </span>
+            <h1 className="text-3xl font-bold tracking-tight mb-6">
+              {currentLesson.title}
+            </h1>
             <div className="prose prose-sm max-w-none text-text-primary leading-relaxed">
               {currentLesson.content ? (
                 <ReactMarkdown>{currentLesson.content}</ReactMarkdown>
               ) : (
                 <p className="text-text-secondary">
-                  Lesson content will appear here. Use the AI tutor on the right to ask questions
-                  about this topic.
+                  Lesson content will appear here. Use the AI tutor on the right
+                  to ask questions about this topic.
                 </p>
               )}
             </div>
           </div>
         ) : (
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-3xl font-bold mb-4">Welcome to your learning session</h1>
+            <h1 className="text-3xl font-bold mb-4">
+              Welcome to your learning session
+            </h1>
             <p className="text-text-secondary">
-              Select a lesson from the left to begin. Your AI tutor is ready on the right.
+              Select a lesson from the left to begin. Your AI tutor is ready on
+              the right.
             </p>
           </div>
         )}
@@ -283,8 +337,8 @@ function LearningRoomPage() {
       <div ref={chatRef} className="flex-1 overflow-auto p-5 space-y-4">
         {messages.length === 0 && (
           <div className="text-sm text-text-secondary bg-surface p-4 rounded-sm">
-            👋 Hey there! I'm your AI tutor. Ask me anything about this lesson — I'll explain,
-            quiz you, or break things down step by step.
+            👋 Hey there! I'm your AI tutor. Ask me anything about this lesson —
+            I'll explain, quiz you, or break things down step by step.
           </div>
         )}
         {messages.map((m) => (
@@ -353,7 +407,9 @@ function LearningRoomPage() {
     <div className="h-screen w-full flex flex-col bg-surface overflow-hidden">
       {/* Desktop layout */}
       <div className="hidden md:grid flex-1 grid-cols-[260px_1fr_360px] overflow-hidden">
-        <aside className="bg-navy text-navy-foreground overflow-hidden">{SidebarTree}</aside>
+        <aside className="bg-navy text-navy-foreground overflow-hidden">
+          {SidebarTree}
+        </aside>
         {LessonCenter}
         {TutorPanel}
       </div>
@@ -370,7 +426,9 @@ function LearningRoomPage() {
           <button
             onClick={() => setMobileTab("lesson")}
             className={`flex-1 h-12 inline-flex items-center justify-center gap-2 text-sm font-medium ${
-              mobileTab === "lesson" ? "border-b-2 border-primary text-primary" : "text-text-secondary"
+              mobileTab === "lesson"
+                ? "border-b-2 border-primary text-primary"
+                : "text-text-secondary"
             }`}
           >
             <BookOpen size={16} /> Lesson
@@ -378,7 +436,9 @@ function LearningRoomPage() {
           <button
             onClick={() => setMobileTab("tutor")}
             className={`flex-1 h-12 inline-flex items-center justify-center gap-2 text-sm font-medium ${
-              mobileTab === "tutor" ? "border-b-2 border-primary text-primary" : "text-text-secondary"
+              mobileTab === "tutor"
+                ? "border-b-2 border-primary text-primary"
+                : "text-text-secondary"
             }`}
           >
             <MessageSquare size={16} /> Tutor
@@ -400,7 +460,9 @@ function LearningRoomPage() {
             >
               <X size={20} />
             </button>
-            <span className="label-caps text-coral mb-3 inline-block">Session summary</span>
+            <span className="label-caps text-coral mb-3 inline-block">
+              Session summary
+            </span>
             <h2 className="text-2xl font-bold mb-4">Great session!</h2>
             <div className="prose prose-sm max-w-none text-text-secondary mb-6 leading-relaxed">
               <ReactMarkdown>{showSummary}</ReactMarkdown>

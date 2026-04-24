@@ -28,19 +28,23 @@ export function AuthLayout({
             never sleeps.
           </h2>
           <p className="text-white/70 max-w-sm">
-            Personalised learning paths, expert-built courses and an AI tutor that adapts to how
-            you think.
+            Personalised learning paths, expert-built courses and an AI tutor
+            that adapts to how you think.
           </p>
         </div>
 
         <div className="relative z-10 bg-white text-text-primary rounded-lg p-5 shadow-2xl max-w-xs">
           <div className="h-2 w-full bg-coral mb-3 rounded-sm" />
           <span className="label-caps text-text-secondary">In progress</span>
-          <h3 className="text-base font-semibold mt-1 mb-3">Building Modern APIs</h3>
+          <h3 className="text-base font-semibold mt-1 mb-3">
+            Building Modern APIs
+          </h3>
           <div className="h-1 w-full bg-surface rounded-sm overflow-hidden">
             <div className="h-full w-3/4 bg-coral" />
           </div>
-          <div className="text-xs text-text-secondary mt-2">9 of 12 lessons</div>
+          <div className="text-xs text-text-secondary mt-2">
+            9 of 12 lessons
+          </div>
         </div>
 
         <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-coral/20 blur-3xl" />

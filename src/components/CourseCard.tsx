@@ -15,9 +15,11 @@ const domainColor = (domain?: string) => {
   if (!domain) return "bg-primary";
   const d = domain.toLowerCase();
   if (d.includes("design") || d.includes("art")) return "bg-coral";
-  if (d.includes("data") || d.includes("ml") || d.includes("ai")) return "bg-primary";
+  if (d.includes("data") || d.includes("ml") || d.includes("ai"))
+    return "bg-primary";
   if (d.includes("business") || d.includes("market")) return "bg-success";
-  if (d.includes("dev") || d.includes("code") || d.includes("tech")) return "bg-navy";
+  if (d.includes("dev") || d.includes("code") || d.includes("tech"))
+    return "bg-navy";
   // pseudo-random by first char
   const codes = ["bg-primary", "bg-coral", "bg-navy", "bg-success"];
   return codes[d.charCodeAt(0) % codes.length];
@@ -49,11 +51,17 @@ export function CourseCard({ course }: { course: CourseCardData }) {
           {course.title}
         </h3>
         {course.description && (
-          <p className="text-sm text-text-secondary line-clamp-2 mb-4">{course.description}</p>
+          <p className="text-sm text-text-secondary line-clamp-2 mb-4">
+            {course.description}
+          </p>
         )}
         <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-xs text-text-secondary">
           <span>{course.tutor_name ?? "EliteCoach"}</span>
-          {date && <span className="font-mono">{new Date(date).toLocaleDateString()}</span>}
+          {date && (
+            <span className="font-mono">
+              {new Date(date).toLocaleDateString()}
+            </span>
+          )}
         </div>
       </div>
     </Link>

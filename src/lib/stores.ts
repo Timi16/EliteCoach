@@ -17,7 +17,11 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isLoggedIn: boolean;
-  setSession: (data: { user: AuthUser; accessToken: string; refreshToken: string }) => void;
+  setSession: (data: {
+    user: AuthUser;
+    accessToken: string;
+    refreshToken: string;
+  }) => void;
   setUser: (user: AuthUser) => void;
   logout: () => void;
 }
@@ -36,7 +40,12 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set({ user }),
       logout: () => {
         clearAuth();
-        set({ user: null, accessToken: null, refreshToken: null, isLoggedIn: false });
+        set({
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+          isLoggedIn: false,
+        });
       },
     }),
     { name: "elitecoach.authstore" },
@@ -46,7 +55,10 @@ export const useAuthStore = create<AuthState>()(
 interface OrgState {
   organizationId: string | null;
   planTier: string | null;
-  setOrg: (data: { organizationId: string | null; planTier?: string | null }) => void;
+  setOrg: (data: {
+    organizationId: string | null;
+    planTier?: string | null;
+  }) => void;
 }
 
 export const useOrgStore = create<OrgState>()(
@@ -84,5 +96,6 @@ export const useSessionStore = create<SessionState>((set) => ({
   setSession: ({ sessionId, courseId }) =>
     set({ currentSessionId: sessionId, courseId, messages: [] }),
   addMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
-  clearSession: () => set({ currentSessionId: null, courseId: null, messages: [] }),
+  clearSession: () =>
+    set({ currentSessionId: null, courseId: null, messages: [] }),
 }));

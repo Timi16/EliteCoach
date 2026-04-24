@@ -13,19 +13,28 @@ export const Route = createFileRoute("/courses")({
       { title: "All courses — EliteCoach" },
       {
         name: "description",
-        content: "Browse 200+ AI-powered courses across data science, design, business and more.",
+        content:
+          "Browse 200+ AI-powered courses across data science, design, business and more.",
       },
       { property: "og:title", content: "All courses — EliteCoach" },
       {
         property: "og:description",
-        content: "Browse 200+ courses across data science, design, business and more.",
+        content:
+          "Browse 200+ courses across data science, design, business and more.",
       },
     ],
   }),
   component: CatalogPage,
 });
 
-const DOMAINS = ["Data Science", "Design", "Business", "Development", "AI", "Marketing"];
+const DOMAINS = [
+  "Data Science",
+  "Design",
+  "Business",
+  "Development",
+  "AI",
+  "Marketing",
+];
 const DIFFICULTIES = ["BEGINNER", "INTERMEDIATE", "ADVANCED"];
 
 function CatalogPage() {
@@ -47,7 +56,9 @@ function CatalogPage() {
       .get(`/courses/?${params.toString()}`)
       .then((res) => {
         if (!alive) return;
-        const data: CourseCardData[] = Array.isArray(res.data) ? res.data : (res.data?.items ?? []);
+        const data: CourseCardData[] = Array.isArray(res.data)
+          ? res.data
+          : (res.data?.items ?? []);
         setCourses(data);
       })
       .catch(() => setCourses([]))
@@ -70,7 +81,9 @@ function CatalogPage() {
   }, [courses, sort]);
 
   const toggleDomain = (d: string) =>
-    setDomains((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
+    setDomains((prev) =>
+      prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
+    );
 
   const FilterPanel = (
     <div className="space-y-8">
@@ -78,7 +91,10 @@ function CatalogPage() {
         <div className="label-caps text-text-secondary mb-4">Domain</div>
         <div className="space-y-3">
           {DOMAINS.map((d) => (
-            <label key={d} className="flex items-center gap-3 cursor-pointer text-sm">
+            <label
+              key={d}
+              className="flex items-center gap-3 cursor-pointer text-sm"
+            >
               <input
                 type="checkbox"
                 checked={domains.includes(d)}
@@ -104,7 +120,10 @@ function CatalogPage() {
             Any
           </label>
           {DIFFICULTIES.map((d) => (
-            <label key={d} className="flex items-center gap-3 cursor-pointer text-sm">
+            <label
+              key={d}
+              className="flex items-center gap-3 cursor-pointer text-sm"
+            >
               <input
                 type="radio"
                 name="difficulty"
@@ -127,12 +146,20 @@ function CatalogPage() {
       <div className="container-1200 py-12 flex-1">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-4">
           <div>
-            <span className="label-caps text-coral mb-2 inline-block">Catalog</span>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">All courses</h1>
+            <span className="label-caps text-coral mb-2 inline-block">
+              Catalog
+            </span>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+              All courses
+            </h1>
             <p className="text-text-secondary mt-3 max-w-xl leading-relaxed">
               Hand-picked, expert-led courses across {DOMAINS.length} core
-              domains. Every one ships with an AI tutor and a real assessment
-              at the end. <span className="font-mono text-text-primary">{sorted.length} results</span>.
+              domains. Every one ships with an AI tutor and a real assessment at
+              the end.{" "}
+              <span className="font-mono text-text-primary">
+                {sorted.length} results
+              </span>
+              .
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -181,11 +208,17 @@ function CatalogPage() {
 
       {filtersOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setFiltersOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setFiltersOpen(false)}
+          />
           <div className="absolute right-0 top-0 bottom-0 w-80 bg-surface-card p-6 overflow-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-semibold">Filters</h3>
-              <button onClick={() => setFiltersOpen(false)} className="text-text-secondary">
+              <button
+                onClick={() => setFiltersOpen(false)}
+                className="text-text-secondary"
+              >
                 Close
               </button>
             </div>

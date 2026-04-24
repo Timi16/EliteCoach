@@ -26,7 +26,10 @@ function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [courses, setCourses] = useState<CourseCardData[]>([]);
-  const [path, setPath] = useState<{ goal?: string; next_course?: string } | null>(null);
+  const [path, setPath] = useState<{
+    goal?: string;
+    next_course?: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
@@ -48,8 +51,12 @@ function DashboardPage() {
         : Promise.resolve({ data: null }),
     ]).then(([s, c, p]) => {
       if (!alive) return;
-      const sList: SessionRow[] = Array.isArray(s.data) ? s.data : (s.data?.items ?? []);
-      const cList: CourseCardData[] = Array.isArray(c.data) ? c.data : (c.data?.items ?? []);
+      const sList: SessionRow[] = Array.isArray(s.data)
+        ? s.data
+        : (s.data?.items ?? []);
+      const cList: CourseCardData[] = Array.isArray(c.data)
+        ? c.data
+        : (c.data?.items ?? []);
       setSessions(sList.slice(0, 8));
       setCourses(cList.slice(0, 6));
       setPath(p.data ?? null);
@@ -71,7 +78,9 @@ function DashboardPage() {
   const avgScore =
     sessions.filter((s) => typeof s.score === "number").length > 0
       ? Math.round(
-          sessions.filter((s) => typeof s.score === "number").reduce((a, s) => a + (s.score ?? 0), 0) /
+          sessions
+            .filter((s) => typeof s.score === "number")
+            .reduce((a, s) => a + (s.score ?? 0), 0) /
             sessions.filter((s) => typeof s.score === "number").length,
         )
       : 0;
@@ -84,15 +93,17 @@ function DashboardPage() {
       }).length
     : 0;
 
-
   return (
     <div className="min-h-screen flex flex-col bg-surface">
       <TopNav />
       <div className="container-1200 py-12 flex-1">
         <div className="mb-12">
-          <span className="label-caps text-coral mb-2 inline-block">Dashboard</span>
+          <span className="label-caps text-coral mb-2 inline-block">
+            Dashboard
+          </span>
           <h1 className="text-4xl font-bold tracking-tight">
-            {greeting}{user?.firstName ? `, ${user.firstName}` : ""}
+            {greeting}
+            {user?.firstName ? `, ${user.firstName}` : ""}
           </h1>
           <p className="text-text-secondary mt-2">
             {now
@@ -108,13 +119,27 @@ function DashboardPage() {
         {/* STATS */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {[
-            { label: "Courses in progress", value: courses.length, accent: "bg-primary" },
-            { label: "Sessions this week", value: thisWeek, accent: "bg-coral" },
-            { label: "Avg quiz score", value: `${avgScore}%`, accent: "bg-success" },
+            {
+              label: "Courses in progress",
+              value: courses.length,
+              accent: "bg-primary",
+            },
+            {
+              label: "Sessions this week",
+              value: thisWeek,
+              accent: "bg-coral",
+            },
+            {
+              label: "Avg quiz score",
+              value: `${avgScore}%`,
+              accent: "bg-success",
+            },
           ].map((s) => (
             <div key={s.label} className="card-base relative overflow-hidden">
               <div className={`absolute top-0 left-0 h-1 w-full ${s.accent}`} />
-              <div className="label-caps text-text-secondary mb-3">{s.label}</div>
+              <div className="label-caps text-text-secondary mb-3">
+                {s.label}
+              </div>
               <div className="text-4xl font-bold">{s.value}</div>
             </div>
           ))}
@@ -124,7 +149,10 @@ function DashboardPage() {
         <div className="mb-12">
           <div className="flex items-end justify-between mb-6">
             <h2 className="text-2xl font-semibold">My courses</h2>
-            <Link to="/courses" className="text-sm text-primary font-medium hover:underline">
+            <Link
+              to="/courses"
+              className="text-sm text-primary font-medium hover:underline"
+            >
               Browse all →
             </Link>
           </div>
@@ -170,19 +198,31 @@ function DashboardPage() {
               <table className="w-full text-sm">
                 <thead className="bg-surface">
                   <tr className="text-left">
-                    <th className="px-6 py-3 label-caps text-text-secondary">Date</th>
-                    <th className="px-6 py-3 label-caps text-text-secondary">Course</th>
-                    <th className="px-6 py-3 label-caps text-text-secondary">Duration</th>
-                    <th className="px-6 py-3 label-caps text-text-secondary">Score</th>
+                    <th className="px-6 py-3 label-caps text-text-secondary">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 label-caps text-text-secondary">
+                      Course
+                    </th>
+                    <th className="px-6 py-3 label-caps text-text-secondary">
+                      Duration
+                    </th>
+                    <th className="px-6 py-3 label-caps text-text-secondary">
+                      Score
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {sessions.map((s) => (
                     <tr key={s.id} className="border-t border-border">
                       <td className="px-6 py-4 text-text-secondary">
-                        {s.created_at ? new Date(s.created_at).toLocaleDateString() : "—"}
+                        {s.created_at
+                          ? new Date(s.created_at).toLocaleDateString()
+                          : "—"}
                       </td>
-                      <td className="px-6 py-4">{s.course_title ?? s.course_id ?? "Session"}</td>
+                      <td className="px-6 py-4">
+                        {s.course_title ?? s.course_id ?? "Session"}
+                      </td>
                       <td className="px-6 py-4 font-mono">
                         {s.duration_minutes ? `${s.duration_minutes} min` : "—"}
                       </td>

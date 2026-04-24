@@ -2,7 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, DragEvent } from "react";
 import { TopNav } from "@/components/TopNav";
 import { OrgTabs } from "@/components/OrgTabs";
-import { identityApi, extractErrorMessage, notificationsApi } from "@/lib/api-client";
+import {
+  identityApi,
+  extractErrorMessage,
+  notificationsApi,
+} from "@/lib/api-client";
 import { toast } from "sonner";
 import { Upload, Plus, X } from "lucide-react";
 
@@ -16,9 +20,17 @@ function ManageLearnersPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [result, setResult] = useState<{ imported: number; failed: number; errors?: string[] } | null>(null);
+  const [result, setResult] = useState<{
+    imported: number;
+    failed: number;
+    errors?: string[];
+  } | null>(null);
   const [assignOpen, setAssignOpen] = useState(false);
-  const [assignForm, setAssignForm] = useState({ course_id: "", learners: "", deadline: "" });
+  const [assignForm, setAssignForm] = useState({
+    course_id: "",
+    learners: "",
+    deadline: "",
+  });
   const [assigning, setAssigning] = useState(false);
 
   const handleUpload = async (file: File) => {
@@ -87,8 +99,12 @@ function ManageLearnersPage() {
       <div className="container-1200 py-12 flex-1">
         <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
           <div>
-            <span className="label-caps text-coral mb-2 inline-block">Organisation</span>
-            <h1 className="text-4xl font-bold tracking-tight">Manage learners</h1>
+            <span className="label-caps text-coral mb-2 inline-block">
+              Organisation
+            </span>
+            <h1 className="text-4xl font-bold tracking-tight">
+              Manage learners
+            </h1>
           </div>
           <button
             onClick={() => setAssignOpen(true)}
@@ -112,20 +128,26 @@ function ManageLearnersPage() {
             onDrop={onDrop}
             onClick={() => fileRef.current?.click()}
             className={`border-2 border-dashed p-12 text-center cursor-pointer transition-colors ${
-              dragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+              dragOver
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/40"
             }`}
           >
             <Upload className="mx-auto mb-3 text-text-secondary" size={28} />
             <p className="font-medium mb-1">
               {importing ? "Uploading..." : "Drop CSV here or click to upload"}
             </p>
-            <p className="text-xs text-text-secondary">Max 10MB · CSV format only</p>
+            <p className="text-xs text-text-secondary">
+              Max 10MB · CSV format only
+            </p>
             <input
               ref={fileRef}
               type="file"
               accept=".csv"
               hidden
-              onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+              onChange={(e) =>
+                e.target.files?.[0] && handleUpload(e.target.files[0])
+              }
             />
           </div>
         </div>
@@ -143,7 +165,9 @@ function ManageLearnersPage() {
             </div>
             {result.errors && result.errors.length > 0 && (
               <details className="text-sm">
-                <summary className="cursor-pointer text-text-secondary">View errors</summary>
+                <summary className="cursor-pointer text-text-secondary">
+                  View errors
+                </summary>
                 <ul className="mt-3 space-y-1 font-mono text-xs">
                   {result.errors.map((e, i) => (
                     <li key={i} className="text-destructive">
@@ -169,10 +193,14 @@ function ManageLearnersPage() {
             <h2 className="text-xl font-bold mb-6">Assign course</h2>
             <div className="space-y-4">
               <div>
-                <label className="label-caps text-text-secondary block mb-2">Course ID (UUID)</label>
+                <label className="label-caps text-text-secondary block mb-2">
+                  Course ID (UUID)
+                </label>
                 <input
                   value={assignForm.course_id}
-                  onChange={(e) => setAssignForm((f) => ({ ...f, course_id: e.target.value }))}
+                  onChange={(e) =>
+                    setAssignForm((f) => ({ ...f, course_id: e.target.value }))
+                  }
                   className="w-full h-12 px-4 border border-border focus:border-primary outline-none font-mono text-sm"
                 />
               </div>
@@ -182,17 +210,23 @@ function ManageLearnersPage() {
                 </label>
                 <textarea
                   value={assignForm.learners}
-                  onChange={(e) => setAssignForm((f) => ({ ...f, learners: e.target.value }))}
+                  onChange={(e) =>
+                    setAssignForm((f) => ({ ...f, learners: e.target.value }))
+                  }
                   rows={3}
                   className="w-full px-4 py-3 border border-border focus:border-primary outline-none font-mono text-sm"
                 />
               </div>
               <div>
-                <label className="label-caps text-text-secondary block mb-2">Deadline</label>
+                <label className="label-caps text-text-secondary block mb-2">
+                  Deadline
+                </label>
                 <input
                   type="date"
                   value={assignForm.deadline}
-                  onChange={(e) => setAssignForm((f) => ({ ...f, deadline: e.target.value }))}
+                  onChange={(e) =>
+                    setAssignForm((f) => ({ ...f, deadline: e.target.value }))
+                  }
                   className="w-full h-12 px-4 border border-border focus:border-primary outline-none"
                 />
               </div>

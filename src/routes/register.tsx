@@ -8,7 +8,10 @@ export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
       { title: "Sign up — EliteCoach" },
-      { name: "description", content: "Create a free EliteCoach account and start learning today." },
+      {
+        name: "description",
+        content: "Create a free EliteCoach account and start learning today.",
+      },
     ],
   }),
   component: RegisterPage,
@@ -16,18 +19,26 @@ export const Route = createFileRoute("/register")({
 
 function RegisterPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
   const [userType, setUserType] = useState<"LEARNER" | "TUTOR">("LEARNER");
   const [loading, setLoading] = useState(false);
 
-  const update = (k: keyof typeof form, v: string) => setForm((s) => ({ ...s, [k]: v }));
+  const update = (k: keyof typeof form, v: string) =>
+    setForm((s) => ({ ...s, [k]: v }));
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       await identityApi.post("/api/v1/auth/register", { ...form, userType });
-      toast.success("Account created. Check your email for a verification code.");
+      toast.success(
+        "Account created. Check your email for a verification code.",
+      );
       navigate({ to: "/verify-otp", search: { email: form.email } });
     } catch (err) {
       toast.error(extractErrorMessage(err, "Registration failed"));
@@ -37,7 +48,10 @@ function RegisterPage() {
   };
 
   return (
-    <AuthLayout title="Create your account" subtitle="Free forever. No credit card required.">
+    <AuthLayout
+      title="Create your account"
+      subtitle="Free forever. No credit card required."
+    >
       <form onSubmit={submit} className="space-y-5">
         <div className="grid grid-cols-2 gap-3">
           <button
@@ -66,7 +80,9 @@ function RegisterPage() {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label-caps text-text-secondary block mb-2">First name</label>
+            <label className="label-caps text-text-secondary block mb-2">
+              First name
+            </label>
             <input
               required
               value={form.firstName}
@@ -75,7 +91,9 @@ function RegisterPage() {
             />
           </div>
           <div>
-            <label className="label-caps text-text-secondary block mb-2">Last name</label>
+            <label className="label-caps text-text-secondary block mb-2">
+              Last name
+            </label>
             <input
               required
               value={form.lastName}
@@ -85,7 +103,9 @@ function RegisterPage() {
           </div>
         </div>
         <div>
-          <label className="label-caps text-text-secondary block mb-2">Email</label>
+          <label className="label-caps text-text-secondary block mb-2">
+            Email
+          </label>
           <input
             type="email"
             required
@@ -95,7 +115,9 @@ function RegisterPage() {
           />
         </div>
         <div>
-          <label className="label-caps text-text-secondary block mb-2">Password</label>
+          <label className="label-caps text-text-secondary block mb-2">
+            Password
+          </label>
           <input
             type="password"
             required
@@ -117,7 +139,10 @@ function RegisterPage() {
 
         <p className="text-sm text-text-secondary text-center">
           Already have an account?{" "}
-          <Link to="/login" className="text-primary font-medium hover:underline">
+          <Link
+            to="/login"
+            className="text-primary font-medium hover:underline"
+          >
             Log in
           </Link>
         </p>

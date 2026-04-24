@@ -8,10 +8,15 @@ export const Route = createFileRoute("/verify-otp")({
   head: () => ({
     meta: [
       { title: "Verify your email — EliteCoach" },
-      { name: "description", content: "Enter the 6-digit code sent to your email." },
+      {
+        name: "description",
+        content: "Enter the 6-digit code sent to your email.",
+      },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>) => ({ email: (s.email as string) || "" }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    email: (s.email as string) || "",
+  }),
   component: VerifyOtpPage,
 });
 
@@ -33,7 +38,8 @@ function VerifyOtpPage() {
   };
 
   const handleKey = (e: KeyboardEvent<HTMLInputElement>, i: number) => {
-    if (e.key === "Backspace" && !digits[i] && i > 0) refs.current[i - 1]?.focus();
+    if (e.key === "Backspace" && !digits[i] && i > 0)
+      refs.current[i - 1]?.focus();
   };
 
   const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {

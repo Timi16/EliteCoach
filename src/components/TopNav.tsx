@@ -106,36 +106,63 @@ export function TopNav() {
       {open && (
         <div className="md:hidden bg-surface-card border-t border-border">
           <div className="container-1200 py-4 flex flex-col gap-3">
-            <Link to="/courses" onClick={() => setOpen(false)} className="py-2 text-sm font-medium">
+            <Link
+              to="/courses"
+              onClick={() => setOpen(false)}
+              className="py-2 text-sm font-medium"
+            >
               Courses
             </Link>
             {isLoggedIn && (
-              <Link to="/dashboard" onClick={() => setOpen(false)} className="py-2 text-sm font-medium">
+              <Link
+                to="/dashboard"
+                onClick={() => setOpen(false)}
+                className="py-2 text-sm font-medium"
+              >
                 Dashboard
               </Link>
             )}
             {isLoggedIn && (
-              <Link to="/learning-path" onClick={() => setOpen(false)} className="py-2 text-sm font-medium">
+              <Link
+                to="/learning-path"
+                onClick={() => setOpen(false)}
+                className="py-2 text-sm font-medium"
+              >
                 Learning Path
               </Link>
             )}
             {isTutor && (
-              <Link to="/tutor/courses" onClick={() => setOpen(false)} className="py-2 text-sm font-medium">
+              <Link
+                to="/tutor/courses"
+                onClick={() => setOpen(false)}
+                className="py-2 text-sm font-medium"
+              >
                 Tutor CMS
               </Link>
             )}
             {isLoggedIn ? (
               <>
-                <Link to="/profile" onClick={() => setOpen(false)} className="py-2 text-sm font-medium">
+                <Link
+                  to="/profile"
+                  onClick={() => setOpen(false)}
+                  className="py-2 text-sm font-medium"
+                >
                   Profile
                 </Link>
-                <button onClick={handleLogout} className="py-2 text-sm font-medium text-left">
+                <button
+                  onClick={handleLogout}
+                  className="py-2 text-sm font-medium text-left"
+                >
                   Log out
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" onClick={() => setOpen(false)} className="py-2 text-sm font-medium">
+                <Link
+                  to="/login"
+                  onClick={() => setOpen(false)}
+                  className="py-2 text-sm font-medium"
+                >
                   Log in
                 </Link>
                 <Link

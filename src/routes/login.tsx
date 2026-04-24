@@ -9,7 +9,10 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Log in — EliteCoach" },
-      { name: "description", content: "Log in to EliteCoach to continue learning." },
+      {
+        name: "description",
+        content: "Log in to EliteCoach to continue learning.",
+      },
     ],
   }),
   component: LoginPage,
@@ -28,14 +31,19 @@ function LoginPage() {
     setErrors({});
     setLoading(true);
     try {
-      const res = await identityApi.post("/api/v1/auth/login", { email, password });
+      const res = await identityApi.post("/api/v1/auth/login", {
+        email,
+        password,
+      });
       const data = res.data?.data ?? res.data;
       const accessToken = data?.accessToken ?? data?.token;
       const refreshToken = data?.refreshToken ?? "";
       const user = data?.user ?? { email };
       if (!accessToken) throw new Error("No access token returned");
       setSession({ user, accessToken, refreshToken });
-      toast.success(`Welcome back${user.firstName ? ", " + user.firstName : ""}`);
+      toast.success(
+        `Welcome back${user.firstName ? ", " + user.firstName : ""}`,
+      );
       if (user.userType === "TUTOR") navigate({ to: "/tutor/courses" });
       else navigate({ to: "/dashboard" });
     } catch (err) {
@@ -47,10 +55,15 @@ function LoginPage() {
   };
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Log in to continue your learning journey.">
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Log in to continue your learning journey."
+    >
       <form onSubmit={submit} className="space-y-5">
         <div>
-          <label className="label-caps text-text-secondary block mb-2">Email</label>
+          <label className="label-caps text-text-secondary block mb-2">
+            Email
+          </label>
           <input
             type="email"
             required
@@ -61,7 +74,9 @@ function LoginPage() {
           />
         </div>
         <div>
-          <label className="label-caps text-text-secondary block mb-2">Password</label>
+          <label className="label-caps text-text-secondary block mb-2">
+            Password
+          </label>
           <input
             type="password"
             required
@@ -71,7 +86,9 @@ function LoginPage() {
             placeholder="••••••••"
           />
           {errors.password && (
-            <p className="text-[13px] text-destructive mt-1">{errors.password}</p>
+            <p className="text-[13px] text-destructive mt-1">
+              {errors.password}
+            </p>
           )}
         </div>
 
@@ -85,7 +102,10 @@ function LoginPage() {
 
         <p className="text-sm text-text-secondary text-center">
           Don't have an account?{" "}
-          <Link to="/register" className="text-primary font-medium hover:underline">
+          <Link
+            to="/register"
+            className="text-primary font-medium hover:underline"
+          >
             Create one
           </Link>
         </p>

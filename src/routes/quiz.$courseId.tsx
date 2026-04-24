@@ -1,6 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { assessmentsApi, notificationsApi, extractErrorMessage } from "@/lib/api-client";
+import {
+  assessmentsApi,
+  notificationsApi,
+  extractErrorMessage,
+} from "@/lib/api-client";
 import { TopNav } from "@/components/TopNav";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
@@ -82,14 +86,20 @@ function QuizPage() {
   }, [courseId]);
 
   const current = questions[idx];
-  const progress = questions.length === 0 ? 0 : Math.round(((idx + 1) / questions.length) * 100);
+  const progress =
+    questions.length === 0
+      ? 0
+      : Math.round(((idx + 1) / questions.length) * 100);
 
   const submit = async () => {
     setSubmitting(true);
     try {
       const res = await assessmentsApi.post("/api/v1/assessments/submit", {
         course_id: courseId,
-        answers: Object.entries(answers).map(([question_id, answer]) => ({ question_id, answer })),
+        answers: Object.entries(answers).map(([question_id, answer]) => ({
+          question_id,
+          answer,
+        })),
       });
       const data = res.data?.data ?? res.data;
       const score = data?.score ?? data?.percentage ?? 0;
@@ -98,7 +108,10 @@ function QuizPage() {
       const per: { id: string; correct: boolean }[] =
         data?.per_question ??
         data?.results ??
-        questions.map((q) => ({ id: q.id, correct: answers[q.id] === q.correct_answer }));
+        questions.map((q) => ({
+          id: q.id,
+          correct: answers[q.id] === q.correct_answer,
+        }));
       setResult({ score, total, passed, perQuestion: per });
       notificationsApi
         .post("/api/v1/notification/send", {
@@ -109,7 +122,9 @@ function QuizPage() {
         .catch(() => {});
     } catch (err) {
       // local scoring fallback
-      const correct = questions.filter((q) => answers[q.id] === q.correct_answer).length;
+      const correct = questions.filter(
+        (q) => answers[q.id] === q.correct_answer,
+      ).length;
       const score = Math.round((correct / questions.length) * 100);
       setResult({
         score,
@@ -146,7 +161,14 @@ function QuizPage() {
           <div className="card-base text-center py-12">
             <div className="relative w-40 h-40 mx-auto mb-6">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                <circle cx="50" cy="50" r="44" stroke="var(--border)" strokeWidth="8" fill="none" />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="44"
+                  stroke="var(--border)"
+                  strokeWidth="8"
+                  fill="none"
+                />
                 <circle
                   cx="50"
                   cy="50"
@@ -164,14 +186,17 @@ function QuizPage() {
             </div>
             <span
               className={`label-caps inline-block px-3 py-1 rounded-sm ${
-                result.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+                result.passed
+                  ? "bg-success/10 text-success"
+                  : "bg-destructive/10 text-destructive"
               }`}
             >
               {result.passed ? "Passed" : "Did not pass"}
             </span>
             <h1 className="text-3xl font-bold mt-4 mb-2">Quiz complete</h1>
             <p className="text-text-secondary">
-              You answered {questions.length} question{questions.length === 1 ? "" : "s"}.
+              You answered {questions.length} question
+              {questions.length === 1 ? "" : "s"}.
             </p>
           </div>
 
@@ -184,7 +209,9 @@ function QuizPage() {
                   <div key={p.id} className="py-3 flex items-start gap-3">
                     <span
                       className={`w-6 h-6 flex items-center justify-center shrink-0 ${
-                        p.correct ? "bg-success text-white" : "bg-destructive text-white"
+                        p.correct
+                          ? "bg-success text-white"
+                          : "bg-destructive text-white"
                       }`}
                     >
                       {p.correct ? <Check size={14} /> : <X size={14} />}
@@ -231,7 +258,9 @@ function QuizPage() {
       <div className="min-h-screen bg-surface">
         <TopNav />
         <div className="container-1200 py-20 text-center">
-          <p className="text-text-secondary">No quiz available for this course yet.</p>
+          <p className="text-text-secondary">
+            No quiz available for this course yet.
+          </p>
         </div>
       </div>
     );
@@ -259,7 +288,9 @@ function QuizPage() {
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold tracking-tight leading-tight mb-8">{current.question}</h1>
+        <h1 className="text-3xl font-bold tracking-tight leading-tight mb-8">
+          {current.question}
+        </h1>
 
         <div className="space-y-3 mb-10">
           {current.options.map((opt) => {

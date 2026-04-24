@@ -2,7 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { TopNav } from "@/components/TopNav";
 import { Footer } from "@/components/Footer";
-import { identityApi, notificationsApi, extractErrorMessage } from "@/lib/api-client";
+import {
+  identityApi,
+  notificationsApi,
+  extractErrorMessage,
+} from "@/lib/api-client";
 import { useAuthStore } from "@/lib/stores";
 import { toast } from "sonner";
 
@@ -29,11 +33,17 @@ function ProfilePage() {
             lastName: data.lastName ?? user?.lastName ?? "",
             email: data.email ?? user?.email ?? "",
           });
-          if (data.userType || data.id) setUser({ ...(user ?? { email: data.email }), ...data });
+          if (data.userType || data.id)
+            setUser({ ...(user ?? { email: data.email }), ...data });
         }
       })
       .catch(() => {
-        if (user) setForm({ firstName: user.firstName ?? "", lastName: user.lastName ?? "", email: user.email });
+        if (user)
+          setForm({
+            firstName: user.firstName ?? "",
+            lastName: user.lastName ?? "",
+            email: user.email,
+          });
       });
   }, []);
 
@@ -63,15 +73,21 @@ function ProfilePage() {
     }
   };
 
-  const initials = `${form.firstName?.[0] ?? ""}${form.lastName?.[0] ?? ""}`.toUpperCase() || "U";
+  const initials =
+    `${form.firstName?.[0] ?? ""}${form.lastName?.[0] ?? ""}`.toUpperCase() ||
+    "U";
 
   return (
     <div className="min-h-screen flex flex-col bg-surface">
       <TopNav />
       <div className="container-1200 py-12 flex-1">
         <div className="mb-10">
-          <span className="label-caps text-coral mb-2 inline-block">Account</span>
-          <h1 className="text-4xl font-bold tracking-tight">Profile & settings</h1>
+          <span className="label-caps text-coral mb-2 inline-block">
+            Account
+          </span>
+          <h1 className="text-4xl font-bold tracking-tight">
+            Profile & settings
+          </h1>
         </div>
 
         <div className="grid lg:grid-cols-[280px_1fr] gap-8">
@@ -96,23 +112,33 @@ function ProfilePage() {
               </p>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="label-caps text-text-secondary block mb-2">First name</label>
+                  <label className="label-caps text-text-secondary block mb-2">
+                    First name
+                  </label>
                   <input
                     value={form.firstName}
-                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, firstName: e.target.value })
+                    }
                     className="w-full h-12 px-4 border border-border focus:border-primary outline-none"
                   />
                 </div>
                 <div>
-                  <label className="label-caps text-text-secondary block mb-2">Last name</label>
+                  <label className="label-caps text-text-secondary block mb-2">
+                    Last name
+                  </label>
                   <input
                     value={form.lastName}
-                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, lastName: e.target.value })
+                    }
                     className="w-full h-12 px-4 border border-border focus:border-primary outline-none"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="label-caps text-text-secondary block mb-2">Email</label>
+                  <label className="label-caps text-text-secondary block mb-2">
+                    Email
+                  </label>
                   <input
                     value={form.email}
                     disabled

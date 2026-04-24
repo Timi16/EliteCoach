@@ -94,12 +94,16 @@ function LearningPathPage() {
       <div className="container-1200 py-12 flex-1">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
           <div>
-            <span className="label-caps text-coral mb-2 inline-block">Your roadmap</span>
+            <span className="label-caps text-coral mb-2 inline-block">
+              Your roadmap
+            </span>
             <h1 className="text-4xl font-bold tracking-tight">
               {path?.goal ?? "Build your learning path"}
             </h1>
             {path?.time_per_week && (
-              <p className="text-text-secondary mt-2">{path.time_per_week} hrs/week</p>
+              <p className="text-text-secondary mt-2">
+                {path.time_per_week} hrs/week
+              </p>
             )}
           </div>
           <div className="flex gap-3">
@@ -125,7 +129,8 @@ function LearningPathPage() {
           <div className="card-base text-center py-16">
             <h3 className="text-xl font-semibold mb-2">No path yet</h3>
             <p className="text-text-secondary max-w-sm mx-auto mb-6">
-              Set a goal and generate a personalised learning path tailored to your time and pace.
+              Set a goal and generate a personalised learning path tailored to
+              your time and pace.
             </p>
             <button
               onClick={() => setEditing(true)}
@@ -150,14 +155,22 @@ function LearningPathPage() {
                   <div
                     className={`absolute -left-[26px] w-5 h-5 rounded-full border-2 flex items-center justify-center ${dotClasses}`}
                   >
-                    {status === "completed" && <Check size={10} className="text-white" />}
-                    {status === "upcoming" && <Circle size={6} className="text-text-secondary" />}
+                    {status === "completed" && (
+                      <Check size={10} className="text-white" />
+                    )}
+                    {status === "upcoming" && (
+                      <Circle size={6} className="text-text-secondary" />
+                    )}
                   </div>
                   <div className="card-base">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <span className="label-caps text-text-secondary">Step {i + 1}</span>
-                        <h3 className="text-lg font-semibold mt-1">{step.course_name}</h3>
+                        <span className="label-caps text-text-secondary">
+                          Step {i + 1}
+                        </span>
+                        <h3 className="text-lg font-semibold mt-1">
+                          {step.course_name}
+                        </h3>
                         {step.estimated_time && (
                           <p className="text-sm text-text-secondary mt-1">
                             ~{step.estimated_time}
@@ -196,7 +209,9 @@ function LearningPathPage() {
             <h2 className="text-xl font-bold mb-6">Edit your goal</h2>
             <div className="space-y-5">
               <div>
-                <label className="label-caps text-text-secondary block mb-2">Career goal</label>
+                <label className="label-caps text-text-secondary block mb-2">
+                  Career goal
+                </label>
                 <input
                   value={goal}
                   onChange={(e) => setGoal(e.target.value)}
@@ -205,7 +220,9 @@ function LearningPathPage() {
                 />
               </div>
               <div>
-                <label className="label-caps text-text-secondary block mb-2">Hours per week</label>
+                <label className="label-caps text-text-secondary block mb-2">
+                  Hours per week
+                </label>
                 <input
                   type="number"
                   min={1}

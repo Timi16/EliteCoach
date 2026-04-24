@@ -50,7 +50,10 @@ function OrgReportsPage() {
     }
   };
 
-  const cards = data && typeof data === "object" ? Object.entries(data as Record<string, unknown>) : [];
+  const cards =
+    data && typeof data === "object"
+      ? Object.entries(data as Record<string, unknown>)
+      : [];
 
   return (
     <div className="min-h-screen flex flex-col bg-surface">
@@ -58,7 +61,9 @@ function OrgReportsPage() {
       <OrgTabs orgId={orgId} />
       <div className="container-1200 py-12 flex-1">
         <div className="mb-10">
-          <span className="label-caps text-coral mb-2 inline-block">Organisation</span>
+          <span className="label-caps text-coral mb-2 inline-block">
+            Organisation
+          </span>
           <h1 className="text-4xl font-bold tracking-tight">Reports</h1>
         </div>
 
@@ -83,7 +88,9 @@ function OrgReportsPage() {
             {tab === "progress" && (
               <>
                 <div>
-                  <label className="label-caps text-text-secondary block mb-2">Start date</label>
+                  <label className="label-caps text-text-secondary block mb-2">
+                    Start date
+                  </label>
                   <input
                     type="date"
                     value={start}
@@ -92,7 +99,9 @@ function OrgReportsPage() {
                   />
                 </div>
                 <div>
-                  <label className="label-caps text-text-secondary block mb-2">End date</label>
+                  <label className="label-caps text-text-secondary block mb-2">
+                    End date
+                  </label>
                   <input
                     type="date"
                     value={end}
@@ -112,7 +121,9 @@ function OrgReportsPage() {
             <div className="flex gap-2">
               <select
                 value={exportFormat}
-                onChange={(e) => setExportFormat(e.target.value as "PDF" | "CSV")}
+                onChange={(e) =>
+                  setExportFormat(e.target.value as "PDF" | "CSV")
+                }
                 className="h-12 px-3 border border-border bg-surface-card text-sm"
               >
                 <option>PDF</option>
@@ -136,7 +147,9 @@ function OrgReportsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {cards.map(([k, v]) => (
               <div key={k} className="card-base">
-                <div className="label-caps text-text-secondary mb-2">{k.replace(/_/g, " ")}</div>
+                <div className="label-caps text-text-secondary mb-2">
+                  {k.replace(/_/g, " ")}
+                </div>
                 <div className="text-2xl font-bold break-all">
                   {typeof v === "object" ? JSON.stringify(v) : String(v)}
                 </div>
